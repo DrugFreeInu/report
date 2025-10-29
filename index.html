@@ -28,18 +28,18 @@ html,body{
   box-shadow:0 0 20px rgba(255,47,137,0.4);
 }
 
-/* button */
-#runBtn{
+/* buttons */
+button{
   font-size:18px;font-weight:700;
   color:#fff;background:#ff4f9d;
   border:none;border-radius:25px;
-  padding:10px 30px;margin-bottom:25px;
+  padding:10px 30px;margin:8px 0;
   cursor:pointer;
   box-shadow:0 0 20px rgba(255,47,137,0.4);
   transition:transform .1s ease,box-shadow .3s ease;
 }
-#runBtn:active{transform:scale(0.97);}
-#runBtn:hover{box-shadow:0 0 30px rgba(255,47,137,0.7);}
+button:active{transform:scale(0.97);}
+button:hover{box-shadow:0 0 30px rgba(255,47,137,0.7);}
 
 /* svg */
 svg{
@@ -83,6 +83,9 @@ a{color:#ff6b9d;text-decoration:none;}
 <button id="runBtn">Run</button>
 <svg id="output" viewBox="0 0 1000 200"></svg>
 
+<!-- new report button -->
+<button id="reportBtn">Generate Report</button>
+
 <footer>Written with LUHV · <a href="write.html">Write new</a></footer>
 
 <!-- opentype.js -->
@@ -92,6 +95,7 @@ const svg=document.getElementById("output");
 const input=document.getElementById("textInput");
 const runBtn=document.getElementById("runBtn");
 const botSelect=document.getElementById("botSelect");
+const reportBtn=document.getElementById("reportBtn");
 let fontLoaded=null;
 
 // load Inter
@@ -116,13 +120,17 @@ function render(txt){
   });
 }
 
-// run button logic
+// run button
 runBtn.addEventListener("click",()=>{
   const bot=botSelect.value;
   if(!bot){alert("Please select a bot first.");return;}
   const txt=`${bot.toUpperCase()} REPORT`;
   render(txt);
-  setTimeout(()=>generateNowlReport(),1500);
+});
+
+// report button
+reportBtn.addEventListener("click",()=>{
+  generateNowlReport();
 });
 </script>
 
@@ -138,7 +146,7 @@ runBtn.addEventListener("click",()=>{
   const frame=document.getElementById('nowlReportFrame');
   function showReport(){
     frame.style.display='block';
-    setTimeout(()=>{frame.remove();},15000);
+    setTimeout(()=>{frame.remove();},20000);
   }
   window.generateNowlReport=showReport;
   const hour=new Date().getHours();
