@@ -47,29 +47,7 @@ a:hover{text-decoration:underline;}
 
 <script>
 async function generateIntelReport(){
-  const start = performance.now();
-
-  // ---- SITE HEALTH ----
-  let size = 0, latency = 0;
-  const domain = location.hostname || "Local Environment";
-  try {
-    const resp = await fetch(location.href);
-    const text = await resp.text();
-    size = text.length;
-    latency = Math.round(performance.now() - start);
-  } catch {
-    size = Math.floor(Math.random()*90000)+50000;
-    latency = "N/A";
-  }
-
-  const siteHealth = {
-    domain,
-    status: "Online ✅",
-    responseTime: `${latency} ms`,
-    approxSize: `${size} bytes`
-  };
-
-  // ---- STORAGE FILE LIST ----
+  // ---- STORAGE FILE LIST ONLY ----
   let total = 0;
   let files = [];
   for (let key in localStorage){
@@ -93,16 +71,12 @@ async function generateIntelReport(){
 NOWL PRO INTEL REPORT
 Generated: ${new Date().toLocaleString()}
 -----------------------------------------------
-🌐 SITE HEALTH
-${JSON.stringify(siteHealth,null,2)}
-→ Shows how responsive and stable this bot’s site is.
------------------------------------------------
 💾 LOCAL STORAGE
 Used: ${storage.used}
 Type: ${storage.type}
 Files:
 ${storage.files.join("\n")}
-→ Shows local save files stored on your device.
+→ These are the bot’s local save files stored on your device.
 -----------------------------------------------`;
 
   // Smooth typing animation
