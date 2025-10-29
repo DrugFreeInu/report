@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nowl Text→SVG Draw</title>
+<style>
+html,body{
+  margin:0;height:100%;background:#000;color:#fff;
+  font-family:system-ui;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;overflow:hidden;
+}
+#textInput{
+  margin-bottom:20px;font-size:20px;padding:10px 20px;
+  border-radius:30px;border:none;outline:none;
+  text-align:center;background:#111;color:#ff4f9d;
+}
+svg{
+  width:90%;max-width:700px;
+  filter:drop-shadow(0 0 10px rgba(255,47,137,.8))
+          drop-shadow(0 0 20px rgba(255,47,137,.4));
+}
+
+/* draw animation */
+@keyframes draw{
+  to{stroke-dashoffset:0;}
+}
+path{
+  fill:none;
+  stroke:#ff4f9d;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:1000;
+  stroke-dashoffset:1000;
+  animation:draw 1.2s ease forwards;
+}
+</style>
+</head>
+<body>
+
+<input id="textInput" placeholder="Type text..." value="NOWL REPORT" />
+<svg id="output" viewBox="0 0 1000 200"></svg>
+
+<!-- opentype.js -->
+<script src="https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js"></script>
+<script>
+const svg=document.getElementById("output");
+const input=document.getElementById("textInput");
+let fontLoaded=null;
+
+// preload Inter font
+opentype.load("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff")
+  .then(f=>fontLoaded=f)
+  .catch(err=>alert("Font load failed "+err));
+
+function render(txt){
+  if(!fontLoaded)return;
+  svg.innerHTML=""; // clear old paths
+  const font=fontLoaded;
+  const letters=txt.split("");
+  let x=20;const y=120;const size=100;
+
+  letters.forEach((ch,i)=>{
+    const p=font.getPath(ch,x,y,size);
+    const d=p.toPathData(2);
+    const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d",d);
+    path.style.animationDelay=`${i*1}s`; // draw one per second
+    svg.appendChild(path);
+    x+=font.getAdvanceWidth(ch,size)+10;
+  });
+}
+
+input.addEventListener("input",()=>render(input.value.trim()||" "));
+window.onload=()=>render(input.value.trim());
+</script>
+</body>
+</html>
