@@ -213,55 +213,35 @@ async function generateIntelReport(){
 
   const prefix="intel_log_"+bot+"_";
   const logKey=prefix+new Date().toISOString();
-  const oldUsage=Object.keys(localStorage).reduce((sum,k)=>sum+(localStorage[k].length||0),0);
 
   // SAVE REPORT LOCALLY
+  const files=Object.keys(localStorage);
   const reportData={
     generated:new Date().toLocaleString(),
     bot,
-    storage:Object.keys(localStorage)
+    files
   };
   localStorage.setItem(logKey,JSON.stringify(reportData,null,2));
 
-  // STORAGE ANALYSIS
-  const used=Object.keys(localStorage)
-    .reduce((sum,k)=>sum+(localStorage[k].length||0),0)/1024;
-  const diff=(used-(oldUsage/1024)).toFixed(2);
-  const files=Object.keys(localStorage);
-  const fileList=files.map(f=>"• "+f).join("\n");
-
-  // CREATE REPORT OUTPUT
+  // FINAL DISPLAY
   let report=
 `-----------------------------------------------
 NOWL PRO INTEL REPORT
 Generated: ${new Date().toLocaleString()}
 -----------------------------------------------
-💾 LOCAL STORAGE
-Used: ${used.toFixed(2)} KB
-Files:
-${fileList}
+💾 LOCAL FILES
+${files.map(f=>"• "+f).join("\n")}
 → These are this bot’s save files stored locally on your device.
 -----------------------------------------------
 → LUHV reflection complete.
 -----------------------------------------------
-💗 LUHV FLOW (Data Changes)
-↑ Storage increased by ${diff} KB
------------------------------------------------
 📂 Tap below to view saved reports:
 `;
 
+  intelSection.textContent=report;
+
   // ADD SAVED REPORT BUTTONS
   const logs=Object.keys(localStorage).filter(k=>k.startsWith("intel_log_")).reverse();
-  logs.forEach(k=>{
-    const div=document.createElement("div");
-    div.textContent=k.replace(prefix,"");
-    div.className="reportButton";
-    div.onclick=()=>openReport(k);
-    intelSection.appendChild(div);
-  });
-
-  // APPEND REPORT HEADER ABOVE BUTTONS
-  intelSection.textContent=report;
   logs.forEach(k=>{
     const div=document.createElement("div");
     div.textContent=k.replace(prefix,"");
