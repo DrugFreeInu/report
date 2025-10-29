@@ -9,14 +9,10 @@
 <meta http-equiv="Expires" content="0">
 <style>
 html,body{
-  margin:0;
-  height:100%;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  background:#000;
-  color:#fff;
+  margin:0;height:100%;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  background:#000;color:#fff;
   overflow:hidden;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
@@ -24,93 +20,62 @@ html,body{
 /* input + buttons */
 #textInput,#botSelect,button{transition:opacity .3s ease;}
 #textInput{
-  margin-bottom:15px;
-  font-size:20px;
-  padding:10px 20px;
-  border-radius:30px;
-  border:none;
-  outline:none;
-  text-align:center;
-  background:#111;
-  color:#ff4f9d;
+  margin-bottom:15px;font-size:20px;padding:10px 20px;
+  border-radius:30px;border:none;outline:none;
+  text-align:center;background:#111;color:#ff4f9d;
 }
 #botSelect{
-  margin-bottom:15px;
-  font-size:18px;
-  padding:10px 20px;
-  border-radius:25px;
-  border:none;
-  outline:none;
-  background:#111;
-  color:#ff4f9d;
+  margin-bottom:15px;font-size:18px;padding:10px 20px;
+  border-radius:25px;border:none;outline:none;
+  background:#111;color:#ff4f9d;
   box-shadow:0 0 20px rgba(255,47,137,0.4);
 }
 button{
-  font-size:18px;
-  font-weight:700;
-  color:#fff;
-  background:#ff4f9d;
-  border:none;
-  border-radius:25px;
-  padding:10px 30px;
-  margin:8px 0;
-  cursor:pointer;
+  font-size:18px;font-weight:700;color:#fff;
+  background:#ff4f9d;border:none;border-radius:25px;
+  padding:10px 30px;margin:8px 0;cursor:pointer;
   box-shadow:0 0 20px rgba(255,47,137,0.4);
 }
 button:hover{box-shadow:0 0 30px rgba(255,47,137,0.7);}
 svg{
-  width:90%;
-  max-width:700px;
+  width:90%;max-width:700px;
   filter:drop-shadow(0 0 10px rgba(255,47,137,.8))
           drop-shadow(0 0 20px rgba(255,47,137,.4));
 }
 @keyframes draw{to{stroke-dashoffset:0;}}
 path{
-  fill:none;
-  stroke:#ff4f9d;
-  stroke-width:2;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  stroke-dasharray:1000;
-  stroke-dashoffset:1000;
+  fill:none;stroke:#ff4f9d;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1000;stroke-dashoffset:1000;
   animation:draw 1.2s ease forwards;
 }
 
 /* intel section */
 #intelSection{
-  display:none;
-  text-align:left;
-  font-size:15px;
-  color:#0f0;
-  white-space:pre-line;
-  overflow:auto;
-  width:90%;
-  max-width:720px;
-  background:#000;
-  border:1px solid #111;
-  padding:20px;
-  border-radius:10px;
-  box-shadow:0 0 25px rgba(0,255,0,0.15);
-  line-height:1.6em;
-  opacity:0;
-  transition:opacity 0.6s ease;
+  display:none;text-align:left;font-size:15px;color:#0f0;
+  white-space:pre-line;overflow:auto;width:90%;max-width:720px;
+  background:#000;border:1px solid #111;padding:20px;border-radius:10px;
+  box-shadow:0 0 25px rgba(0,255,0,0.15);line-height:1.6em;
+  opacity:0;transition:opacity 0.6s ease;
 }
 #intelSection.visible{opacity:1;animation:glowPulse 3s infinite alternate;}
 @keyframes glowPulse{
   0%{box-shadow:0 0 20px rgba(0,255,0,.25);}
   100%{box-shadow:0 0 40px rgba(0,255,100,.45);}
 }
+.reportLink{
+  display:block;margin:5px 0;padding:6px 10px;
+  background:#020;border-radius:6px;color:#0f0;
+  cursor:pointer;font-size:13px;
+  border:1px solid rgba(0,255,0,0.2);
+  transition:background .3s;
+}
+.reportLink:hover{background:#040;}
 
 /* footer */
 footer{
-  position:fixed;
-  bottom:25px;
-  left:50%;
-  transform:translateX(-50%);
-  color:#ff6b9d;
-  font-size:14px;
-  opacity:.7;
-  font-weight:600;
+  position:fixed;bottom:25px;left:50%;transform:translateX(-50%);
+  color:#ff6b9d;font-size:14px;opacity:.7;font-weight:600;
 }
 a{color:#ff6b9d;text-decoration:none;}
 </style>
@@ -183,7 +148,7 @@ function render(txt){
   }
 }
 
-// --- INTEL MODULE: Local storage reflection + history ---
+// --- INTEL MODULE (Auto Save + History Viewer) ---
 async function generateIntelReport(){
   const bot=document.getElementById("botSelect").value||"Nowl";
   document.getElementById('reportSection').style.display='none';
@@ -191,9 +156,8 @@ async function generateIntelReport(){
   requestAnimationFrame(()=>intelSection.classList.add('visible'));
   intelSection.textContent="⏳ Scanning local environment...\n";
 
-  // Scan localStorage
-  let total=0;
-  const storedKeys=[];
+  // local storage analysis
+  let total=0; const storedKeys=[];
   for(const key in localStorage){
     if(localStorage.hasOwnProperty(key)){
       storedKeys.push(key);
@@ -202,9 +166,8 @@ async function generateIntelReport(){
   }
   const storageUsedKB=(total/1024).toFixed(2);
 
-  // Build report
-  const report=
-`-----------------------------------------------
+  // build report text
+  const report=`-----------------------------------------------
 NOWL PRO INTEL REPORT
 Generated: ${new Date().toLocaleString()}
 -----------------------------------------------
@@ -212,21 +175,37 @@ Generated: ${new Date().toLocaleString()}
 Bot: ${bot}
 Used: ${storageUsedKB} KB
 Files:
-${storedKeys.length ? storedKeys.map(k=>"• "+k).join("\n") : "No local files found"}
+${storedKeys.length?storedKeys.map(k=>"• "+k).join("\n"):"No local files found"}
 → These are this bot’s save files stored locally on your device.
 -----------------------------------------------
 📜 NOTE
 This information never leaves your device.
 -----------------------------------------------`;
 
-  // Save snapshot to localStorage
+  // save snapshot
   const timestamp=new Date().toISOString().replace(/[:.]/g,"-");
   const key=`intel_log_${bot}_${timestamp}`;
   localStorage.setItem(key,report);
 
-  // Update display
-  intelSection.textContent=report+`\nSnapshot saved: ${key}`;
+  // render report + history list
+  showReport(report);
+  appendHistoryList();
+}
 
+function showReport(text){
+  intelSection.textContent=text+"\n\n📂 Tap below to view saved reports:";
+}
+
+function appendHistoryList(){
+  const entries=Object.keys(localStorage).filter(k=>k.startsWith("intel_log_")).sort().reverse();
+  entries.forEach(k=>{
+    const link=document.createElement("div");
+    link.className="reportLink";
+    link.textContent=k.replace("intel_log_","");
+    link.onclick=()=>{intelSection.textContent=localStorage.getItem(k)+"\n\n[Tap to return]";};
+    intelSection.appendChild(link);
+  });
+  // return tap
   intelSection.onclick=()=>{
     intelSection.classList.remove('visible');
     intelSection.style.display='none';
