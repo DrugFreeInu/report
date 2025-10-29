@@ -12,12 +12,25 @@ html,body{
   background:#000;color:#fff;overflow:hidden;
 }
 
-/* input box (for testing) */
+/* input box */
 #textInput{
-  margin-bottom:20px;font-size:20px;padding:10px 20px;
+  margin-bottom:15px;font-size:20px;padding:10px 20px;
   border-radius:30px;border:none;outline:none;
   text-align:center;background:#111;color:#ff4f9d;
 }
+
+/* run button */
+#runBtn{
+  font-size:18px;font-weight:700;
+  color:#fff;background:#ff4f9d;
+  border:none;border-radius:25px;
+  padding:10px 30px;margin-bottom:25px;
+  cursor:pointer;
+  box-shadow:0 0 20px rgba(255,47,137,0.4);
+  transition:transform .1s ease,box-shadow .3s ease;
+}
+#runBtn:active{transform:scale(0.97);}
+#runBtn:hover{box-shadow:0 0 30px rgba(255,47,137,0.7);}
 
 /* svg area */
 svg{
@@ -40,6 +53,7 @@ path{
   stroke-dashoffset:1000;
   animation:draw 1.2s ease forwards;
 }
+
 footer{
   position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
   color:#ff6b9d;font-size:14px;opacity:.7;font-weight:600;
@@ -50,6 +64,7 @@ a{color:#ff6b9d;text-decoration:none;}
 <body>
 
 <input id="textInput" placeholder="Type text..." value="NOWL REPORT" />
+<button id="runBtn">Run</button>
 <svg id="output" viewBox="0 0 1000 200"></svg>
 
 <footer>Written with LUHV · <a href="write.html">Write new</a></footer>
@@ -59,6 +74,7 @@ a{color:#ff6b9d;text-decoration:none;}
 <script>
 const svg=document.getElementById("output");
 const input=document.getElementById("textInput");
+const runBtn=document.getElementById("runBtn");
 let fontLoaded=null;
 
 // load Inter font
@@ -84,8 +100,11 @@ function render(txt){
   });
 }
 
-input.addEventListener("input",()=>render(input.value.trim()||" "));
-window.onload=()=>render(input.value.trim());
+// only draw when Run button is pressed
+runBtn.addEventListener("click",()=>{
+  const txt=input.value.trim()||" ";
+  render(txt);
+});
 </script>
 
 </body>
