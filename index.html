@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>NOWL REPORT</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <style>
 html,body{
   margin:0;height:100%;
@@ -88,20 +91,39 @@ a{color:#ff6b9d;text-decoration:none;}
 
 <footer>Written with LUHV · <a href="write.html">Write new</a></footer>
 
-<!-- opentype.js -->
-<script src="https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js"></script>
+<!-- opentype.js with cache-busting -->
 <script>
-const svg=document.getElementById("output");
-const input=document.getElementById("textInput");
-const runBtn=document.getElementById("runBtn");
-const botSelect=document.getElementById("botSelect");
-const reportBtn=document.getElementById("reportBtn");
-let fontLoaded=null;
+const cacheBust = '?v=' + Date.now();
+const script = document.createElement('script');
+script.src = "https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js" + cacheBust;
+document.head.appendChild(script);
+</script>
 
-// load Inter
-opentype.load("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff")
-  .then(f=>fontLoaded=f)
-  .catch(err=>alert("Font load failed "+err));
+<script>
+let fontLoaded=null;
+let svg,input,runBtn,botSelect,reportBtn;
+
+window.addEventListener('load',()=>{
+  svg=document.getElementById("output");
+  input=document.getElementById("textInput");
+  runBtn=document.getElementById("runBtn");
+  botSelect=document.getElementById("botSelect");
+  reportBtn=document.getElementById("reportBtn");
+
+  // load Inter font fresh each time
+  opentype.load("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff"+cacheBust)
+    .then(f=>fontLoaded=f)
+    .catch(err=>alert("Font load failed "+err));
+
+  runBtn.addEventListener("click",()=>{
+    const bot=botSelect.value;
+    if(!bot){alert("Please select a bot first.");return;}
+    const txt=`${bot.toUpperCase()} REPORT`;
+    render(txt);
+  });
+
+  reportBtn.addEventListener("click",()=>{ generateNowlReport(); });
+});
 
 function render(txt){
   if(!fontLoaded)return;
@@ -119,24 +141,10 @@ function render(txt){
     x+=font.getAdvanceWidth(ch,size)+10;
   });
 }
-
-// run button
-runBtn.addEventListener("click",()=>{
-  const bot=botSelect.value;
-  if(!bot){alert("Please select a bot first.");return;}
-  const txt=`${bot.toUpperCase()} REPORT`;
-  render(txt);
-});
-
-// report button
-reportBtn.addEventListener("click",()=>{
-  generateNowlReport();
-});
 </script>
 
 <!-- NOWL REPORT EMBED -->
 <iframe id="nowlReportFrame"
-  src="report.html"
   style="position:fixed;inset:0;border:none;z-index:9999;display:none;">
 </iframe>
 
@@ -144,11 +152,17 @@ reportBtn.addEventListener("click",()=>{
 (function(){
   "use strict";
   const frame=document.getElementById('nowlReportFrame');
+  const cacheBust='?v='+Date.now();
+
   function showReport(){
+    frame.src='report.html'+cacheBust;
     frame.style.display='block';
     setTimeout(()=>{frame.remove();},20000);
   }
+
   window.generateNowlReport=showReport;
+
+  // auto-trigger at night
   const hour=new Date().getHours();
   if(hour>=21||hour<6){ setTimeout(showReport,2000); }
 })();
