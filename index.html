@@ -11,32 +11,33 @@ html,body{
   background:#000;overflow:hidden;
 }
 
-.wrapper{display:flex;gap:4px;}
-
-/* letter style */
-.letter{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  font-weight:900;
-  font-size:70px;
-  color:transparent;
-  -webkit-text-stroke:3px #ff2e88;
-  text-transform:uppercase;
-  opacity:0;
-  filter:drop-shadow(0 0 12px rgba(255,47,137,0.8))
-         drop-shadow(0 0 24px rgba(255,47,137,0.4));
-  animation:drawLetter 1s forwards ease-out;
+/* SVG setup */
+svg{
+  width:90%;max-width:700px;
+  filter:drop-shadow(0 0 14px rgba(255,47,137,0.7))
+         drop-shadow(0 0 28px rgba(255,47,137,0.4));
 }
 
-@keyframes drawLetter{
-  0%{opacity:0;transform:scale(0.85);-webkit-text-stroke-color:#ff2e88;}
-  60%{opacity:1;transform:scale(1.08);-webkit-text-stroke-color:#ff6b9d;}
-  100%{opacity:1;transform:scale(1);-webkit-text-stroke-color:#ff2e88;}
+/* animate each letter stroke */
+@keyframes drawStroke{
+  to{stroke-dashoffset:0;}
 }
 
-/* glow breathing after full text appears */
+/* style shared by all paths */
+path{
+  fill:none;
+  stroke:url(#grad);
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:1000;
+  stroke-dashoffset:1000;
+}
+
+/* glow breathing after all drawn */
 @keyframes glowPulse{
-  0%,100%{filter:drop-shadow(0 0 12px rgba(255,47,137,0.6))}
-  50%{filter:drop-shadow(0 0 26px rgba(255,47,137,0.9))}
+  0%,100%{filter:drop-shadow(0 0 10px rgba(255,47,137,0.6))}
+  50%{filter:drop-shadow(0 0 22px rgba(255,47,137,1))}
 }
 
 footer{
@@ -48,22 +49,50 @@ a{color:#ff6b9d;text-decoration:none;}
 </head>
 <body>
 
-<div class="wrapper" id="title"></div>
+<svg viewBox="0 0 900 200">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff2e88"/>
+      <stop offset="100%" stop-color="#ff6b9d"/>
+    </linearGradient>
+  </defs>
+
+  <!-- each letter drawn separately -->
+  <text x="50%" y="50%" text-anchor="middle" dy=".35em"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+        font-size="90" font-weight="900"
+        fill="none" stroke="url(#grad)" stroke-width="3"
+        stroke-linecap="round" stroke-linejoin="round"
+        id="mainText">NOWL REPORT</text>
+</svg>
+
 <footer>Written with LUHV · <a href="write.html">Write new</a></footer>
 
 <script>
-const text="NOWL REPORT";
-const wrapper=document.getElementById("title");
-[...text].forEach((char,i)=>{
-  const span=document.createElement("span");
-  span.textContent=char;
-  span.className="letter";
-  span.style.animationDelay=`${i*1}s`; // slower timing: 1 second per letter
-  wrapper.appendChild(span);
+const text = document.getElementById("mainText");
+const chars = text.textContent.split("");
+text.textContent="";
+
+chars.forEach((ch,i)=>{
+  const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+  t.setAttribute("x", 60 + i*75);
+  t.setAttribute("y", 110);
+  t.setAttribute("font-size","90");
+  t.setAttribute("font-weight","900");
+  t.setAttribute("fill","none");
+  t.setAttribute("stroke","url(#grad)");
+  t.setAttribute("stroke-width","3");
+  t.setAttribute("stroke-dasharray","600");
+  t.setAttribute("stroke-dashoffset","600");
+  t.textContent = ch;
+  t.style.animation = `drawStroke 1s ease forwards`;
+  t.style.animationDelay = `${i}s`;
+  text.parentNode.appendChild(t);
 });
+
 setTimeout(()=>{
-  wrapper.style.animation="glowPulse 4s ease-in-out infinite";
-}, text.length*1000 + 500);
+  document.querySelector("svg").style.animation="glowPulse 4s ease-in-out infinite";
+}, chars.length*1000 + 1000);
 </script>
 
 </body>
