@@ -177,13 +177,23 @@ function render(txt){
   }
 }
 
-// INTEL MODULE (teaching mode)
+// INTEL MODULE
 async function generateIntelReport(){
+  const bot = document.getElementById("botSelect").value || "Nowl";
   document.getElementById('reportSection').style.display='none';
   intelSection.style.display='block';
   intelSection.textContent="Initializing NOWL PRO INTEL REPORT...\n";
+
+  const botDomains = {
+    "Echo Jr":"echojr.website",
+    "Ancr":"ancr.website",
+    "Keel":"keel.website",
+    "4ncr":"4ncr.website",
+    "Nowl":"nowl.website"
+  };
+
+  const domain = botDomains[bot] || location.hostname;
   const start=performance.now();
-  const domain=location.hostname||"Local Environment";
   let size=0;
   try{
     const resp=await fetch(location.href);
@@ -192,15 +202,14 @@ async function generateIntelReport(){
   }catch{ size=Math.floor(Math.random()*90000)+50000; }
   const latency=Math.round(performance.now()-start);
 
-  // Site health
   const siteHealth={
+    bot,
     domain,
     status:"Online ✅",
     responseTime:`${latency} ms`,
     approxSize:`${size} bytes`
   };
 
-  // Local storage usage
   let total=0;
   for(const key in localStorage){
     if(localStorage.hasOwnProperty(key)){
@@ -210,7 +219,6 @@ async function generateIntelReport(){
   const storageUsedKB=(total/1024).toFixed(2);
   const storage={used:`${storageUsedKB} KB`,type:"localStorage"};
 
-  // Display
   intelSection.textContent=
 `-----------------------------------------------
 NOWL PRO INTEL REPORT
