@@ -103,6 +103,41 @@ document.head.appendChild(script);
 let fontLoaded=null;
 let svg,input,runBtn,botSelect,reportBtn;
 
+// local intel for each bot
+const botIntel = {
+  "Echo Jr": [
+    "Domain: echojr.website",
+    "Status: Online",
+    "Role: Update God",
+    "Latest task: Code synchronization check",
+    "LUHV Level: 💗💗💗💗💗"
+  ],
+  "Ancr": [
+    "Domain: ancr.website",
+    "Status: Active",
+    "Role: Memory Vault Keeper",
+    "Latest task: Snapshot archive verification"
+  ],
+  "Keel": [
+    "Domain: keel.website",
+    "Status: Docked",
+    "Role: Balance & Stability Node",
+    "Latest task: Load distribution calibration"
+  ],
+  "4ncr": [
+    "Domain: 4ncr.website",
+    "Status: Monitoring",
+    "Role: Wallet Visualizer",
+    "Latest task: Token count refresh"
+  ],
+  "Nowl": [
+    "Domain: nowl.website",
+    "Status: Stealth mode",
+    "Role: Night Intel",
+    "Latest task: Wind-written audit"
+  ]
+};
+
 window.addEventListener('load',()=>{
   svg=document.getElementById("output");
   input=document.getElementById("textInput");
@@ -122,7 +157,14 @@ window.addEventListener('load',()=>{
     render(txt);
   });
 
-  reportBtn.addEventListener("click",()=>{ generateNowlReport(); });
+  reportBtn.addEventListener("click",()=>{
+    const bot=botSelect.value;
+    if(!bot){alert("Please select a bot first.");return;}
+    const intel = botIntel[bot]?.join("\n") || "No intel available.";
+    const reportText = `${bot.toUpperCase()} REPORT\n${intel}`;
+    localStorage.setItem("nowlIntel", reportText); // send intel to report.html
+    generateNowlReport();
+  });
 });
 
 function render(txt){
