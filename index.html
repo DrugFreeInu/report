@@ -21,21 +21,9 @@ html,body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 
-/* INPUTS */
-#textInput,#botSelect,button{transition:opacity .3s ease;}
-#textInput{
-  margin-bottom:15px;
-  font-size:20px;
-  padding:10px 20px;
-  border-radius:30px;
-  border:none;
-  outline:none;
-  text-align:center;
-  background:#111;
-  color:#ff4f9d;
-}
+/* only selector + button */
+#botSelect,button{transition:opacity .3s ease;}
 #botSelect{
-  margin-bottom:15px;
   font-size:18px;
   padding:10px 20px;
   border-radius:25px;
@@ -44,6 +32,7 @@ html,body{
   background:#111;
   color:#ff4f9d;
   box-shadow:0 0 20px rgba(255,47,137,0.4);
+  margin-bottom:20px;
 }
 button{
   font-size:18px;
@@ -53,30 +42,12 @@ button{
   border:none;
   border-radius:25px;
   padding:10px 30px;
-  margin:8px 0;
   cursor:pointer;
   box-shadow:0 0 20px rgba(255,47,137,0.4);
 }
 button:hover{box-shadow:0 0 30px rgba(255,47,137,0.7);}
-svg{
-  width:90%;
-  max-width:700px;
-  filter:drop-shadow(0 0 10px rgba(255,47,137,.8))
-          drop-shadow(0 0 20px rgba(255,47,137,.4));
-}
-@keyframes draw{to{stroke-dashoffset:0;}}
-path{
-  fill:none;
-  stroke:#ff4f9d;
-  stroke-width:2;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  stroke-dasharray:1000;
-  stroke-dashoffset:1000;
-  animation:draw 1.2s ease forwards;
-}
 
-/* INTEL SECTION */
+/* intel display */
 #intelSection{
   display:none;
   text-align:left;
@@ -101,7 +72,7 @@ path{
   100%{box-shadow:0 0 40px rgba(0,255,100,.45);}
 }
 
-/* REPORT BUTTON BOXES */
+/* report buttons */
 .reportButton{
   display:block;
   background:#002200;
@@ -121,7 +92,7 @@ path{
   box-shadow:0 0 25px rgba(0,255,0,.5);
 }
 
-/* FOOTER */
+/* footer */
 footer{
   position:fixed;
   bottom:25px;
@@ -137,75 +108,33 @@ a{color:#ff6b9d;text-decoration:none;}
 </head>
 <body>
 
-<!-- MAIN NOWL REPORT UI -->
+<!-- minimal main -->
 <div id="reportSection">
-<select id="botSelect">
-  <option value="">Select bot</option>
-  <option value="Echo Jr">Echo Jr</option>
-  <option value="Ancr">Ancr</option>
-  <option value="Keel">Keel</option>
-  <option value="4ncr">4ncr</option>
-  <option value="Nowl">Nowl</option>
-</select>
-
-<input id="textInput" placeholder="Type text..." value="NOWL REPORT" />
-<button id="runBtn">Run</button>
-<svg id="output" viewBox="0 0 1000 200"></svg>
-<button id="intelBtn">Intel Mode</button>
+  <select id="botSelect">
+    <option value="">Select bot</option>
+    <option value="Echo Jr">Echo Jr</option>
+    <option value="Ancr">Ancr</option>
+    <option value="Keel">Keel</option>
+    <option value="4ncr">4ncr</option>
+    <option value="Nowl">Nowl</option>
+  </select>
+  <button id="intelBtn">Intel Mode</button>
 </div>
 
-<!-- INTEL MODULE -->
+<!-- intel -->
 <pre id="intelSection"></pre>
 
 <footer>Written with LUHV · <a href="write.html">Write new</a></footer>
 
 <script>
-const cacheBust='?v='+Date.now();
-const script=document.createElement('script');
-script.src='https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js'+cacheBust;
-document.head.appendChild(script);
+let intelSection=document.getElementById("intelSection");
+let botSelect=document.getElementById("botSelect");
+let intelBtn=document.getElementById("intelBtn");
 
-let fontLoaded=null,svg,input,runBtn,botSelect,intelBtn,intelSection;
+intelBtn.onclick=()=>generateIntelReport();
 
-window.addEventListener('load',()=>{
-  svg=document.getElementById("output");
-  input=document.getElementById("textInput");
-  runBtn=document.getElementById("runBtn");
-  botSelect=document.getElementById("botSelect");
-  intelBtn=document.getElementById("intelBtn");
-  intelSection=document.getElementById("intelSection");
-
-  opentype.load("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff"+cacheBust)
-    .then(f=>fontLoaded=f);
-
-  runBtn.onclick=()=>{
-    const bot=botSelect.value;
-    if(!bot)return alert("Select a bot first.");
-    render(`${bot.toUpperCase()} REPORT`);
-  };
-
-  intelBtn.onclick=()=>generateIntelReport();
-});
-
-function render(txt){
-  if(!fontLoaded)return;
-  svg.innerHTML="";
-  const font=fontLoaded;
-  let x=20,y=120,size=100;
-  for(const [i,ch] of [...txt].entries()){
-    const p=font.getPath(ch,x,y,size);
-    const d=p.toPathData(2);
-    const path=document.createElementNS("http://www.w3.org/2000/svg","path");
-    path.setAttribute("d",d);
-    path.style.animationDelay=`${i*1}s`;
-    svg.appendChild(path);
-    x+=font.getAdvanceWidth(ch,size)+10;
-  }
-}
-
-// INTEL MODULE
 async function generateIntelReport(){
-  const bot=document.getElementById("botSelect").value||"Nowl";
+  const bot=botSelect.value||"Nowl";
   document.getElementById('reportSection').style.display='none';
   intelSection.style.display='block';
   requestAnimationFrame(()=>intelSection.classList.add('visible'));
@@ -214,12 +143,10 @@ async function generateIntelReport(){
   const prefix="intel_log_"+bot+"_";
   const logKey=prefix+new Date().toISOString();
 
-  // Save new report
   const files=Object.keys(localStorage);
   const reportData={generated:new Date().toLocaleString(),bot,files};
   localStorage.setItem(logKey,JSON.stringify(reportData,null,2));
 
-  // Build minimal fine art report
   intelSection.textContent=
 `-----------------------------------------------
 NOWL PRO INTEL REPORT
@@ -230,7 +157,6 @@ Generated: ${new Date().toLocaleString()}
 📂 Tap below to view saved reports:
 `;
 
-  // Green boxed buttons
   const logs=Object.keys(localStorage).filter(k=>k.startsWith("intel_log_")).reverse();
   logs.forEach(k=>{
     const div=document.createElement("div");
@@ -249,7 +175,6 @@ Generated: ${new Date().toLocaleString()}
   };
 }
 
-// open report window
 function openReport(key){
   const data=localStorage.getItem(key);
   if(!data)return alert("Report not found.");
