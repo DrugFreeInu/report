@@ -125,7 +125,6 @@ a{color:#ff6b9d;text-decoration:none;}
 <input id="textInput" placeholder="Type text..." value="NOWL REPORT" />
 <button id="runBtn">Run</button>
 <svg id="output" viewBox="0 0 1000 200"></svg>
-<button id="reportBtn">Generate Report</button>
 <button id="intelBtn">Intel Mode</button>
 </div>
 
@@ -140,22 +139,13 @@ const script=document.createElement('script');
 script.src='https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js'+cacheBust;
 document.head.appendChild(script);
 
-let fontLoaded=null,svg,input,runBtn,botSelect,reportBtn,intelBtn,intelSection;
-
-const botIntel={
-  "Echo Jr":["Domain: echojr.website","Status: Online","Role: Update God","Latest task: Code sync","LUHV: 💗💗💗💗💗"],
-  "Ancr":["Domain: ancr.website","Status: Active","Role: Vault Keeper","Latest task: Snapshot archive"],
-  "Keel":["Domain: keel.website","Status: Docked","Role: Stability Node","Latest task: Load calibration"],
-  "4ncr":["Domain: 4ncr.website","Status: Monitoring","Role: Wallet Visualizer","Latest task: Token refresh"],
-  "Nowl":["Domain: nowl.website","Status: Stealth","Role: Night Intel","Latest task: Wind audit"]
-};
+let fontLoaded=null,svg,input,runBtn,botSelect,intelBtn,intelSection;
 
 window.addEventListener('load',()=>{
   svg=document.getElementById("output");
   input=document.getElementById("textInput");
   runBtn=document.getElementById("runBtn");
   botSelect=document.getElementById("botSelect");
-  reportBtn=document.getElementById("reportBtn");
   intelBtn=document.getElementById("intelBtn");
   intelSection=document.getElementById("intelSection");
 
@@ -166,19 +156,6 @@ window.addEventListener('load',()=>{
     const bot=botSelect.value;
     if(!bot)return alert("Select a bot first.");
     render(`${bot.toUpperCase()} REPORT`);
-  };
-
-  reportBtn.onclick=()=>{
-    const bot=botSelect.value;
-    if(!bot)return alert("Select a bot first.");
-    const intel=botIntel[bot]?.join("\n")||"No intel available.";
-    const reportText=`${bot.toUpperCase()} REPORT\n${intel}`;
-    localStorage.setItem("nowlIntel",reportText);
-    const frame=document.createElement('iframe');
-    frame.src='report.html?v='+Date.now();
-    Object.assign(frame.style,{position:'fixed',inset:'0',border:'none',zIndex:'9999',width:'100vw',height:'100vh',background:'black'});
-    document.body.appendChild(frame);
-    setTimeout(()=>frame.remove(),25000);
   };
 
   intelBtn.onclick=()=>generateIntelReport();
@@ -200,66 +177,55 @@ function render(txt){
   }
 }
 
-// INTEL MODULE
+// INTEL MODULE (teaching mode)
 async function generateIntelReport(){
   document.getElementById('reportSection').style.display='none';
   intelSection.style.display='block';
   intelSection.textContent="Initializing NOWL PRO INTEL REPORT...\n";
   const start=performance.now();
-  const domain=location.hostname;
-let size=0;
-try{
-  const resp=await fetch(location.href);
-  const text=await resp.text();
-  size=text.length;
-}catch{ size=Math.floor(Math.random()*90000)+50000; }
+  const domain=location.hostname||"Local Environment";
+  let size=0;
+  try{
+    const resp=await fetch(location.href);
+    const text=await resp.text();
+    size=text.length;
+  }catch{ size=Math.floor(Math.random()*90000)+50000; }
   const latency=Math.round(performance.now()-start);
-  const system={
-    platform:navigator.platform,
-    cpuCores:navigator.hardwareConcurrency||"N/A",
-    screen:`${screen.width}×${screen.height}@${window.devicePixelRatio}x`,
-    colorDepth:`${screen.colorDepth}-bit`,
-    language:navigator.language
+
+  // Site health
+  const siteHealth={
+    domain,
+    status:"Online ✅",
+    responseTime:`${latency} ms`,
+    approxSize:`${size} bytes`
   };
-  let storage={used:"N/A",total:"N/A"};
-  if('storage' in navigator && navigator.storage.estimate){
-    const e=await navigator.storage.estimate();
-    storage={used:(e.usage/1048576).toFixed(2)+" MB",total:(e.quota/1048576).toFixed(2)+" MB"};
+
+  // Local storage usage
+  let total=0;
+  for(const key in localStorage){
+    if(localStorage.hasOwnProperty(key)){
+      total+=((localStorage[key].length+key.length)*2);
+    }
   }
-let localLatency="N/A";
-try{
-  const latencyTestStart=performance.now();
-  await Promise.race([
-    fetch("https://cloudflare.com",{mode:"no-cors"}),
-    new Promise((_,reject)=>setTimeout(()=>reject(),2000))
-  ]);
-  localLatency=Math.round(performance.now()-latencyTestStart)+" ms";
-}catch{
-  localLatency="Offline or blocked";
-}
+  const storageUsedKB=(total/1024).toFixed(2);
+  const storage={used:`${storageUsedKB} KB`,type:"localStorage"};
+
+  // Display
   intelSection.textContent=
 `-----------------------------------------------
 NOWL PRO INTEL REPORT
 Generated: ${new Date().toLocaleString()}
 -----------------------------------------------
 🌐 SITE HEALTH
-Domain: ${domain}
-Status: Online ✅
-Response Time: ${latency} ms
-Approx. Size: ${size} bytes
------------------------------------------------
-🧠 SYSTEM
-${JSON.stringify(system,null,2)}
+${JSON.stringify(siteHealth,null,2)}
+→ Shows how responsive and stable this bot’s site is.
 -----------------------------------------------
 💾 STORAGE
 ${JSON.stringify(storage,null,2)}
+→ Shows how much space this bot is using on your device.
 -----------------------------------------------
-📡 LOCAL LATENCY
-${localLatency}
------------------------------------------------
-[Press Back to Return]`;
+[Tap to return]`;
 
-  // Tap to return
   intelSection.onclick=()=>{
     intelSection.style.display='none';
     document.getElementById('reportSection').style.display='flex';
