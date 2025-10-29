@@ -1,44 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>NOWL REPORT</title>
 <style>
 html,body{
-  margin:0;height:100%;display:flex;justify-content:center;align-items:center;
+  margin:0;height:100%;
+  display:flex;justify-content:center;align-items:center;
   background:#000;overflow:hidden;
 }
 
-svg{
-  width:90%;max-width:600px;
-}
+.wrapper{display:flex;gap:4px;}
 
-/* gradient border animation */
-@keyframes borderFlow{
-  0%{stroke-dashoffset:1000;stroke:#ff2e88;}
-  50%{stroke-dashoffset:0;stroke:#ff6b9d;}
-  100%{stroke-dashoffset:-1000;stroke:#ff2e88;}
-}
-
-text{
+/* letter style */
+.letter{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   font-weight:900;
-  font-size:72px;
-  fill:none;
-  stroke:#ff2e88;
-  stroke-width:3px;
-  stroke-dasharray:1000;
-  stroke-dashoffset:1000;
-  animation:borderFlow 4s linear infinite;
-  letter-spacing:4px;
+  font-size:70px;
+  color:transparent;
+  -webkit-text-stroke:3px #ff2e88;
   text-transform:uppercase;
+  opacity:0;
+  filter:drop-shadow(0 0 12px rgba(255,47,137,0.8))
+         drop-shadow(0 0 24px rgba(255,47,137,0.4));
+  animation:drawLetter 1s forwards ease-out;
 }
 
-/* glowing aura */
-svg{
-  filter:drop-shadow(0 0 12px rgba(255,47,137,0.6))
-          drop-shadow(0 0 24px rgba(255,47,137,0.4));
+@keyframes drawLetter{
+  0%{opacity:0;transform:scale(0.85);-webkit-text-stroke-color:#ff2e88;}
+  60%{opacity:1;transform:scale(1.08);-webkit-text-stroke-color:#ff6b9d;}
+  100%{opacity:1;transform:scale(1);-webkit-text-stroke-color:#ff2e88;}
+}
+
+/* glow breathing after full text appears */
+@keyframes glowPulse{
+  0%,100%{filter:drop-shadow(0 0 12px rgba(255,47,137,0.6))}
+  50%{filter:drop-shadow(0 0 26px rgba(255,47,137,0.9))}
 }
 
 footer{
@@ -50,10 +48,23 @@ a{color:#ff6b9d;text-decoration:none;}
 </head>
 <body>
 
-<svg viewBox="0 0 800 200">
-  <text x="50%" y="50%" text-anchor="middle" dy=".35em">NOWL REPORT</text>
-</svg>
-
+<div class="wrapper" id="title"></div>
 <footer>Written with LUHV · <a href="write.html">Write new</a></footer>
+
+<script>
+const text="NOWL REPORT";
+const wrapper=document.getElementById("title");
+[...text].forEach((char,i)=>{
+  const span=document.createElement("span");
+  span.textContent=char;
+  span.className="letter";
+  span.style.animationDelay=`${i*1}s`; // slower timing: 1 second per letter
+  wrapper.appendChild(span);
+});
+setTimeout(()=>{
+  wrapper.style.animation="glowPulse 4s ease-in-out infinite";
+}, text.length*1000 + 500);
+</script>
+
 </body>
 </html>
