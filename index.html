@@ -1,45 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>REPORT · NOWL</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>NOWL REPORT</title>
 <style>
 html,body{
-  margin:0;height:100%;
-  display:flex;justify-content:center;align-items:center;
-  background:radial-gradient(circle at center,#0a0a0a 0%,#000 100%);
-  color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  margin:0;height:100%;display:flex;justify-content:center;align-items:center;
+  background:#000;overflow:hidden;
 }
 
-/* glowing border text */
+svg{
+  width:90%;max-width:600px;
+}
+
+/* gradient border animation */
 @keyframes borderFlow{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
+  0%{stroke-dashoffset:1000;stroke:#ff2e88;}
+  50%{stroke-dashoffset:0;stroke:#ff6b9d;}
+  100%{stroke-dashoffset:-1000;stroke:#ff2e88;}
 }
 
-.border-text{
-  font-size:3rem;font-weight:900;letter-spacing:4px;
+text{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-weight:900;
+  font-size:72px;
+  fill:none;
+  stroke:#ff2e88;
+  stroke-width:3px;
+  stroke-dasharray:1000;
+  stroke-dashoffset:1000;
+  animation:borderFlow 4s linear infinite;
+  letter-spacing:4px;
   text-transform:uppercase;
-  background:linear-gradient(90deg,#ff2e88,#ff6b9d,#ff2e88);
-  background-size:300% 300%;
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  animation:borderFlow 3s linear infinite;
-  text-shadow:0 0 30px rgba(255,47,137,0.4);
+}
+
+/* glowing aura */
+svg{
+  filter:drop-shadow(0 0 12px rgba(255,47,137,0.6))
+          drop-shadow(0 0 24px rgba(255,47,137,0.4));
 }
 
 footer{
   position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
-  font-size:14px;color:#ff6b9d;opacity:.7;
+  color:#ff6b9d;font-size:14px;opacity:.7;font-weight:600;
 }
-a{color:#ff6b9d;text-decoration:none;font-weight:600;}
+a{color:#ff6b9d;text-decoration:none;}
 </style>
 </head>
 <body>
 
-<div class="border-text">NOWL REPORT</div>
+<svg viewBox="0 0 800 200">
+  <text x="50%" y="50%" text-anchor="middle" dy=".35em">NOWL REPORT</text>
+</svg>
 
 <footer>Written with LUHV · <a href="write.html">Write new</a></footer>
 </body>
