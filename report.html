@@ -3,185 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>NOWL REPORT · Local Intel</title>
+<title>NOWL PRO INTEL REPORT</title>
 <style>
 html,body{
   margin:0;height:100%;width:100%;
   background:#000;color:#fff;
+  font-family:monospace;
   display:flex;align-items:center;justify-content:center;
-  font-family:monospace;overflow:hidden;cursor:pointer;
+  overflow:auto;cursor:pointer;
+  padding:20px;box-sizing:border-box;
 }
-#nowlReport{
-  opacity:0;
+#report{
   white-space:pre-line;
-  text-align:center;
+  text-align:left;
   font-size:1.05em;
-  line-height:1.7em;
-  padding:25px 35px;
+  line-height:1.6em;
+  padding:20px 25px;
   border:1px solid rgba(255,255,255,.2);
-  border-radius:10px;
-  background:rgba(0,0,0,.85);
-  filter:drop-shadow(0 0 15px rgba(255,255,255,.4));
-  transition:opacity 2s ease;
+  border-radius:12px;
+  background:rgba(0,0,0,.75);
+  box-shadow:0 0 20px rgba(255,255,255,.3);
+  max-width:700px;
+  transition:opacity 1s ease;
+  opacity:0;
 }
-@keyframes wind {
-  0%{filter:blur(0px) opacity(0);}
-  10%{filter:blur(0px) opacity(1);}
-  90%{filter:blur(0px) opacity(1);}
-  100%{filter:blur(12px) opacity(0);}
-}
+section{margin-top:1.2em;}
+h2{color:#ff4f9d;font-size:1.1em;margin:0 0 .4em;}
+hr{border:none;border-top:1px solid rgba(255,255,255,.2);margin:1em 0;}
+@keyframes fadein{from{opacity:0;}to{opacity:1;}}
 </style>
 </head>
 <body>
-<div id="nowlReport">🦉 Gathering wind data...</div>
+<pre id="report">Initializing NOWL PRO INTEL...</pre>
+
 <script>
-(async function(){
+(async()=>{
 "use strict";
-const report=document.getElementById('nowlReport');
-let active=false;
-const savedIntel=localStorage.getItem("nowlIntel");
+const rep=document.getElementById("report");
+const savedIntel=localStorage.getItem("nowlIntel")||"";
 localStorage.removeItem("nowlIntel");
+const t0=performance.now();
 
-// helpers
-async function getBattery(){
-  try{const b=await navigator.getBattery();return Math.round(b.level*100)+"%";}catch{return "Unknown";}
+function line(txt){return txt+"\n";}
+function hr(){return "--------------------------------------\n";}
+function fmt(num,unit=""){return (num!=null?num:"N/A")+unit;}
+function fmtSec(ms){return (ms/1000).toFixed(2)+"s";}
+
+let text="";
+text+=line(savedIntel.trim());
+text+=hr();
+
+// time + uptime
+const genTime=new Date();
+const up=(performance.now()/1000).toFixed(1);
+text+=line("NOWL PRO INTEL REPORT");
+text+=line("Generated: "+genTime.toLocaleString());
+text+=line("Session Uptime: "+up+"s");
+text+=hr();
+
+// PLATFORM
+const ua=navigator.userAgent;
+text+=line("🧠 SYSTEM");
+text+=line("Platform: "+navigator.platform);
+text+=line("User Agent: "+ua.split(") ")[0]+")");
+text+=line("CPU Cores: "+(navigator.hardwareConcurrency||"Unknown"));
+if(performance.memory){
+  text+=line("Memory Used: "+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+" MB");
+  text+=line("Memory Limit: "+(performance.memory.jsHeapSizeLimit/1048576).toFixed(1)+" MB");
 }
-function getConn(){try{return navigator.connection?.effectiveType?.toUpperCase()||"Unknown";}catch{return "Unknown";}}
-function getCPU(){return navigator.hardwareConcurrency||"Unknown";}
-function getMem(){return navigator.deviceMemory?navigator.deviceMemory+" GB":"Unknown";}
-function getPlatform(){return navigator.userAgentData?.platform||navigator.platform||"Unknown";}
-function getScreen(){return `${screen.width}×${screen.height} @${window.devicePixelRatio}x`;}
-function getColor(){return `${screen.colorDepth}-bit`;}
+text+=line("Screen: "+screen.width+"×"+screen.height+" @"+window.devicePixelRatio+"x");
+text+=line("Color Depth: "+screen.colorDepth+"-bit");
+text+=line("Language: "+navigator.language);
+text+=hr();
 
-// FPS test
-function measureFPS(ms=1000){
-  return new Promise(resolve=>{
-    let frames=0, start=performance.now();
-    function step(){
-      frames++;
-      if(performance.now()-start<ms)requestAnimationFrame(step);
-      else resolve(Math.round(frames/(ms/1000)));
-    }
-    requestAnimationFrame(step);
-  });
+// BATTERY
+try{
+  const b=await navigator.getBattery();
+  text+=line("🔋 BATTERY");
+  text+=line("Level: "+Math.round(b.level*100)+"%");
+  text+=line("Charging: "+(b.charging?"Yes ⚡":"No"));
+  text+=line("Time to full: "+(b.chargingTime>0?fmtSec(b.chargingTime):"N/A"));
+  text+=line("Time to empty: "+(b.dischargingTime>0?fmtSec(b.dischargingTime):"N/A"));
+  text+=hr();
+}catch(e){text+=line("Battery info unavailable");text+=hr();}
+
+// NETWORK
+const conn=navigator.connection||navigator.webkitConnection||navigator.mozConnection;
+text+=line("🌐 NETWORK");
+text+=line("Online: "+(navigator.onLine?"Yes":"No"));
+if(conn){
+  text+=line("Type: "+(conn.effectiveType||"Unknown"));
+  text+=line("Downlink: "+fmt(conn.downlink," Mbps"));
+  text+=line("RTT: "+fmt(conn.rtt," ms"));
 }
+text+=hr();
 
-// memory usage (Chrome only)
-function getHeap(){
-  const m=performance.memory;
-  if(!m)return "N/A";
-  const used=(m.usedJSHeapSize/1048576).toFixed(0);
-  const total=(m.jsHeapSizeLimit/1048576).toFixed(0);
-  return `${used}MB / ${total}MB`;
-}
-
-// idle time
-let lastActive=Date.now();
-["mousemove","keydown","touchstart","click","scroll"].forEach(e=>{
-  addEventListener(e,()=>lastActive=Date.now(),{passive:true});
+// PERFORMANCE
+const fps=await new Promise(r=>{
+  let frames=0,start=performance.now();
+  function loop(){
+    frames++;
+    if(performance.now()-start<1000) requestAnimationFrame(loop);
+    else r(frames);
+  }
+  loop();
 });
-function idleTime(){
-  const diff=Math.floor((Date.now()-lastActive)/1000);
-  const m=Math.floor(diff/60);const s=diff%60;
-  return m>0?`${m}m ${s}s`:`${s}s`;
+const loadTime=performance.now()-t0;
+text+=line("📊 PERFORMANCE");
+text+=line("FPS: "+fps);
+text+=line("Page Load: "+fmtSec(loadTime));
+text+=line("Idle Time: "+fmtSec(performance.now()-t0-loadTime));
+text+=hr();
+
+// STORAGE
+if(navigator.storage&&navigator.storage.estimate){
+  const est=await navigator.storage.estimate();
+  const used=(est.usage/1048576).toFixed(2);
+  const quota=(est.quota/1048576).toFixed(2);
+  text+=line("💾 STORAGE");
+  text+=line("Used: "+used+" MB / "+quota+" MB");
+  text+=hr();
 }
 
-// time since last report
-let last=localStorage.getItem("lastReportTime");
-const now=Date.now();
-let since="First report";
-if(last){
-  const diff=now-parseInt(last);
-  const mins=Math.floor(diff/60000);
-  const hrs=Math.floor(mins/60);
-  since=hrs>0?`${hrs}h ${mins%60}m ago`:`${mins}m ago`;
-}
-localStorage.setItem("lastReportTime",now.toString());
-
-// bots
-const bots=[
-  "Echo Jr: Online – Synced",
-  "Ancr: Vault Secure",
-  "Keel: Balanced",
-  "4ncr: Wallets Active",
-  "Nowl: Watching quietly"
-];
-
-function computeLUHV(battery,conn,fps){
-  let base=80;
-  if(conn.includes("5G")||conn.includes("WIFI"))base+=5;
-  const b=parseInt(battery)||80;
-  if(fps>55)base+=5; else if(fps<30)base-=5;
-  base+=Math.min(b/10,10);
-  return Math.min(Math.max(base,0),100);
+// PERMISSIONS
+if(navigator.permissions){
+  const list=["camera","microphone","notifications"];
+  text+=line("🔐 PERMISSIONS");
+  for(const p of list){
+    try{
+      const st=await navigator.permissions.query({name:p});
+      text+=line(p+": "+st.state);
+    }catch{}
+  }
+  text+=hr();
 }
 
-async function buildReport(){
-  const battery=await getBattery();
-  const conn=getConn();
-  const cpu=getCPU();
-  const mem=getMem();
-  const platform=getPlatform();
-  const screenRes=getScreen();
-  const color=getColor();
-  const fps=await measureFPS();
-  const heap=getHeap();
-  const load=(performance.now()/1000).toFixed(2)+"s";
-  const luhv=computeLUHV(battery,conn,fps);
-  const hearts="💗".repeat(Math.max(1,Math.round(luhv/20)));
-  const time=new Date().toLocaleString();
+// ENVIRONMENT
+text+=line("🌙 ENVIRONMENT");
+text+=line("Orientation: "+(screen.orientation?screen.orientation.type:"Unknown"));
+text+=line("Touch Support: "+("ontouchstart" in window?"Yes":"No"));
+text+=line("Do Not Track: "+(navigator.doNotTrack=="1"?"Enabled":"No"));
+text+=line("PWA Installed: "+(window.matchMedia('(display-mode: standalone)').matches?"Yes":"No"));
+text+=hr();
 
-  let intel="";
-  if(savedIntel) intel=savedIntel+"\n\n";
+// LATENCY SELF TEST
+try{
+  const t1=performance.now();
+  await fetch(window.location.href,{method:'HEAD',cache:'no-store'});
+  const latency=(performance.now()-t1).toFixed(1);
+  text+=line("📡 LOCAL LATENCY");
+  text+=line("Self ping: "+latency+" ms");
+  text+=hr();
+}catch{}
 
-  return `${intel}NOWL LOCAL INTEL REPORT
-Generated: ${time}
-
-${bots.join("\n")}
-
-──────────────────────────────
-⚙️  SYSTEM
-Platform: ${platform}
-CPU Cores: ${cpu}
-Memory: ${mem}
-Screen: ${screenRes}
-Color Depth: ${color}
-Heap: ${heap}
-
-──────────────────────────────
-📊  PERFORMANCE
-FPS: ${fps}
-Page Load: ${load}
-Idle Time: ${idleTime()}
-Last Report: ${since}
-
-──────────────────────────────
-🌐  ENVIRONMENT
-Connection: ${conn}
-Battery: ${battery}
-
-──────────────────────────────
-💗  LUHV INDEX
-${luhv} / 100  ${hearts}`;
-}
-
-async function showReport(){
-  if(active)return;active=true;
-  const txt=await buildReport();
-  report.textContent=txt;
-  report.style.opacity='1';
-  report.style.animation='wind 22s ease forwards';
-  setTimeout(()=>selfDestruct(),22000);
-}
-function selfDestruct(){
-  report.style.transition='opacity 2s';
-  report.style.opacity='0';
-  setTimeout(()=>report.remove(),2500);
-}
-
-const hour=new Date().getHours();
-if(savedIntel||hour>=21||hour<6){setTimeout(showReport,1000);}
-report.addEventListener('click',showReport);
+// FINALIZE
+rep.textContent=text;
+rep.style.opacity='1';
 })();
 </script>
 </body>
