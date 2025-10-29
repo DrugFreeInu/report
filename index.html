@@ -226,9 +226,17 @@ try{
     const e=await navigator.storage.estimate();
     storage={used:(e.usage/1048576).toFixed(2)+" MB",total:(e.quota/1048576).toFixed(2)+" MB"};
   }
+let localLatency="N/A";
+try{
   const latencyTestStart=performance.now();
-  await fetch("https://1.1.1.1",{mode:"no-cors"});
-  const localLatency=Math.round(performance.now()-latencyTestStart)+" ms";
+  await Promise.race([
+    fetch("https://cloudflare.com",{mode:"no-cors"}),
+    new Promise((_,reject)=>setTimeout(()=>reject(),2000))
+  ]);
+  localLatency=Math.round(performance.now()-latencyTestStart)+" ms";
+}catch{
+  localLatency="Offline or blocked";
+}
   intelSection.textContent=
 `-----------------------------------------------
 NOWL PRO INTEL REPORT
