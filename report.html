@@ -3,22 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>NOWL REPORT</title>
+<title>NOWL REPORT · Local Intel</title>
 <style>
 html,body{
   margin:0;height:100%;width:100%;
   background:#000;color:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-family:monospace;overflow:hidden;
-  cursor:pointer;
+  font-family:monospace;overflow:hidden;cursor:pointer;
 }
 #nowlReport{
   opacity:0;
   white-space:pre-line;
   text-align:center;
-  font-size:1.1em;
-  line-height:1.6em;
-  padding:25px 30px;
+  font-size:1.05em;
+  line-height:1.7em;
+  padding:25px 35px;
   border:1px solid rgba(255,255,255,.2);
   border-radius:10px;
   background:rgba(0,0,0,.85);
@@ -40,28 +39,52 @@ html,body{
 "use strict";
 const report=document.getElementById('nowlReport');
 let active=false;
-
-// stored intel from index.html
 const savedIntel=localStorage.getItem("nowlIntel");
 localStorage.removeItem("nowlIntel");
 
-// get battery info
-async function getBatteryInfo(){
-  try{
-    const b=await navigator.getBattery();
-    return Math.round(b.level*100)+"%";
-  }catch{ return "Unknown"; }
+// helpers
+async function getBattery(){
+  try{const b=await navigator.getBattery();return Math.round(b.level*100)+"%";}catch{return "Unknown";}
+}
+function getConn(){try{return navigator.connection?.effectiveType?.toUpperCase()||"Unknown";}catch{return "Unknown";}}
+function getCPU(){return navigator.hardwareConcurrency||"Unknown";}
+function getMem(){return navigator.deviceMemory?navigator.deviceMemory+" GB":"Unknown";}
+function getPlatform(){return navigator.userAgentData?.platform||navigator.platform||"Unknown";}
+function getScreen(){return `${screen.width}×${screen.height} @${window.devicePixelRatio}x`;}
+function getColor(){return `${screen.colorDepth}-bit`;}
+
+// FPS test
+function measureFPS(ms=1000){
+  return new Promise(resolve=>{
+    let frames=0, start=performance.now();
+    function step(){
+      frames++;
+      if(performance.now()-start<ms)requestAnimationFrame(step);
+      else resolve(Math.round(frames/(ms/1000)));
+    }
+    requestAnimationFrame(step);
+  });
 }
 
-// connection type
-function getConnection(){
-  try{
-    return navigator.connection?.effectiveType?.toUpperCase() || "Unknown";
-  }catch{return "Unknown";}
+// memory usage (Chrome only)
+function getHeap(){
+  const m=performance.memory;
+  if(!m)return "N/A";
+  const used=(m.usedJSHeapSize/1048576).toFixed(0);
+  const total=(m.jsHeapSizeLimit/1048576).toFixed(0);
+  return `${used}MB / ${total}MB`;
 }
 
-// load time
-const loadTime=(performance.now()/1000).toFixed(2)+"s";
+// idle time
+let lastActive=Date.now();
+["mousemove","keydown","touchstart","click","scroll"].forEach(e=>{
+  addEventListener(e,()=>lastActive=Date.now(),{passive:true});
+});
+function idleTime(){
+  const diff=Math.floor((Date.now()-lastActive)/1000);
+  const m=Math.floor(diff/60);const s=diff%60;
+  return m>0?`${m}m ${s}s`:`${s}s`;
+}
 
 // time since last report
 let last=localStorage.getItem("lastReportTime");
@@ -75,7 +98,7 @@ if(last){
 }
 localStorage.setItem("lastReportTime",now.toString());
 
-// bots quick status (static examples)
+// bots
 const bots=[
   "Echo Jr: Online – Synced",
   "Ancr: Vault Secure",
@@ -84,36 +107,62 @@ const bots=[
   "Nowl: Watching quietly"
 ];
 
-// compute LUHV index (mocked with real signal strength + battery)
-function computeLuhv(battery,conn){
+function computeLUHV(battery,conn,fps){
   let base=80;
-  if(conn.includes("5G")||conn.includes("WIFI"))base+=10;
-  const num=parseInt(battery)||80;
-  base+=Math.min(num/10,10);
-  return Math.min(base,100);
+  if(conn.includes("5G")||conn.includes("WIFI"))base+=5;
+  const b=parseInt(battery)||80;
+  if(fps>55)base+=5; else if(fps<30)base-=5;
+  base+=Math.min(b/10,10);
+  return Math.min(Math.max(base,0),100);
 }
 
 async function buildReport(){
-  const battery=await getBatteryInfo();
-  const conn=getConnection();
-  const luhv=computeLuhv(battery,conn);
-  const hearts="💗".repeat(Math.round(luhv/20));
+  const battery=await getBattery();
+  const conn=getConn();
+  const cpu=getCPU();
+  const mem=getMem();
+  const platform=getPlatform();
+  const screenRes=getScreen();
+  const color=getColor();
+  const fps=await measureFPS();
+  const heap=getHeap();
+  const load=(performance.now()/1000).toFixed(2)+"s";
+  const luhv=computeLUHV(battery,conn,fps);
+  const hearts="💗".repeat(Math.max(1,Math.round(luhv/20)));
   const time=new Date().toLocaleString();
 
-  let intelBlock="";
-  if(savedIntel) intelBlock=savedIntel+"\n\n";
+  let intel="";
+  if(savedIntel) intel=savedIntel+"\n\n";
 
-  return `${intelBlock}NOWL INTEL REPORT
+  return `${intel}NOWL LOCAL INTEL REPORT
 Generated: ${time}
 
 ${bots.join("\n")}
 
-Connection: ${conn}
-Battery: ${battery}
-Page Load: ${loadTime}
+──────────────────────────────
+⚙️  SYSTEM
+Platform: ${platform}
+CPU Cores: ${cpu}
+Memory: ${mem}
+Screen: ${screenRes}
+Color Depth: ${color}
+Heap: ${heap}
+
+──────────────────────────────
+📊  PERFORMANCE
+FPS: ${fps}
+Page Load: ${load}
+Idle Time: ${idleTime()}
 Last Report: ${since}
 
-LUHV Index: ${luhv} / 100 ${hearts}`;
+──────────────────────────────
+🌐  ENVIRONMENT
+Connection: ${conn}
+Battery: ${battery}
+
+──────────────────────────────
+💗  LUHV INDEX
+${luhv} / 100  ${hearts}`;
 }
 
 async function showReport(){
@@ -121,19 +170,17 @@ async function showReport(){
   const txt=await buildReport();
   report.textContent=txt;
   report.style.opacity='1';
-  report.style.animation='wind 20s ease forwards';
-  setTimeout(()=>selfDestruct(),20000);
+  report.style.animation='wind 22s ease forwards';
+  setTimeout(()=>selfDestruct(),22000);
 }
-
 function selfDestruct(){
   report.style.transition='opacity 2s';
   report.style.opacity='0';
   setTimeout(()=>report.remove(),2500);
 }
 
-// auto run if triggered at night or from index
 const hour=new Date().getHours();
-if(savedIntel||hour>=21||hour<6){ setTimeout(showReport,1000); }
+if(savedIntel||hour>=21||hour<6){setTimeout(showReport,1000);}
 report.addEventListener('click',showReport);
 })();
 </script>
