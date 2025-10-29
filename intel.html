@@ -58,7 +58,7 @@ async function generateIntelReport(){
     type: "localStorage"
   };
 
-  // ---- RENDER TEXT REPORT ----
+  // ---- DISPLAY REPORT ----
   document.getElementById("intel").textContent =
 `-----------------------------------------------
 NOWL PRO INTEL REPORT
@@ -66,11 +66,11 @@ Generated: ${new Date().toLocaleString()}
 -----------------------------------------------
 🌐 SITE HEALTH
 ${JSON.stringify(siteHealth,null,2)}
-→ Shows how fast and stable this site responds to visitors.
+→ This shows how responsive and stable this bot’s site is.
 -----------------------------------------------
 💾 STORAGE
 ${JSON.stringify(storage,null,2)}
-→ Shows how much memory this bot is using on your device.
+→ This shows how much space this bot is using on your device.
 -----------------------------------------------`;
 }
 
