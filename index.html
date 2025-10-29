@@ -86,51 +86,49 @@ a{color:#ff6b9d;text-decoration:none;}
 <button id="runBtn">Run</button>
 <svg id="output" viewBox="0 0 1000 200"></svg>
 
-<!-- new report button -->
 <button id="reportBtn">Generate Report</button>
 
 <footer>Written with LUHV · <a href="write.html">Write new</a></footer>
 
-<!-- opentype.js with cache-busting -->
+<!-- opentype.js -->
 <script>
-const cacheBust = '?v=' + Date.now();
-const script = document.createElement('script');
-script.src = "https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js" + cacheBust;
+const cacheBust='?v='+Date.now();
+const script=document.createElement('script');
+script.src='https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js'+cacheBust;
 document.head.appendChild(script);
 </script>
 
 <script>
-let fontLoaded=null;
-let svg,input,runBtn,botSelect,reportBtn;
+let fontLoaded=null,svg,input,runBtn,botSelect,reportBtn;
 
 // local intel for each bot
-const botIntel = {
-  "Echo Jr": [
+const botIntel={
+  "Echo Jr":[
     "Domain: echojr.website",
     "Status: Online",
     "Role: Update God",
     "Latest task: Code synchronization check",
     "LUHV Level: 💗💗💗💗💗"
   ],
-  "Ancr": [
+  "Ancr":[
     "Domain: ancr.website",
     "Status: Active",
     "Role: Memory Vault Keeper",
     "Latest task: Snapshot archive verification"
   ],
-  "Keel": [
+  "Keel":[
     "Domain: keel.website",
     "Status: Docked",
     "Role: Balance & Stability Node",
     "Latest task: Load distribution calibration"
   ],
-  "4ncr": [
+  "4ncr":[
     "Domain: 4ncr.website",
     "Status: Monitoring",
     "Role: Wallet Visualizer",
     "Latest task: Token count refresh"
   ],
-  "Nowl": [
+  "Nowl":[
     "Domain: nowl.website",
     "Status: Stealth mode",
     "Role: Night Intel",
@@ -145,10 +143,8 @@ window.addEventListener('load',()=>{
   botSelect=document.getElementById("botSelect");
   reportBtn=document.getElementById("reportBtn");
 
-  // load Inter font fresh each time
   opentype.load("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff"+cacheBust)
-    .then(f=>fontLoaded=f)
-    .catch(err=>alert("Font load failed "+err));
+    .then(f=>fontLoaded=f);
 
   runBtn.addEventListener("click",()=>{
     const bot=botSelect.value;
@@ -157,13 +153,25 @@ window.addEventListener('load',()=>{
     render(txt);
   });
 
+  // everything runs in this direct click so Safari allows iframe
   reportBtn.addEventListener("click",()=>{
     const bot=botSelect.value;
     if(!bot){alert("Please select a bot first.");return;}
-    const intel = botIntel[bot]?.join("\n") || "No intel available.";
-    const reportText = `${bot.toUpperCase()} REPORT\n${intel}`;
-    localStorage.setItem("nowlIntel", reportText);
-    generateNowlReport();
+    const intel=botIntel[bot]?.join("\n")||"No intel available.";
+    const reportText=`${bot.toUpperCase()} REPORT\n${intel}`;
+    localStorage.setItem("nowlIntel",reportText);
+
+    const frame=document.createElement('iframe');
+    frame.src='report.html?v='+Date.now();
+    frame.style.position='fixed';
+    frame.style.inset='0';
+    frame.style.border='none';
+    frame.style.zIndex='9999';
+    frame.style.background='black';
+    document.body.appendChild(frame);
+
+    // remove after cycle
+    setTimeout(()=>{frame.remove();},25000);
   });
 });
 
@@ -184,41 +192,5 @@ function render(txt){
   });
 }
 </script>
-
-<script>
-(function(){
-  "use strict";
-  const cacheBust='?v='+Date.now();
-  let frame;
-
-  function showReport(){
-    // remove old iframe if exists
-    if(frame) frame.remove();
-
-    // create a new one fresh each time
-    frame=document.createElement('iframe');
-    frame.src='report.html'+cacheBust;
-    frame.style.position='fixed';
-    frame.style.inset='0';
-    frame.style.border='none';
-    frame.style.zIndex='9999';
-    frame.style.background='black';
-    frame.style.display='block';
-    document.body.appendChild(frame);
-
-    // allow enough time for full fade-out cycle before removal
-    setTimeout(()=>{
-      if(frame){ frame.remove(); frame=null; }
-    },25000);
-  }
-
-  window.generateNowlReport=showReport;
-
-  // auto at night
-  const hour=new Date().getHours();
-  if(hour>=21||hour<6){ setTimeout(showReport,2000); }
-})();
-</script>
-
 </body>
 </html>
