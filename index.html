@@ -100,11 +100,34 @@ function render(txt){
   });
 }
 
-// only draw when Run button is pressed
 runBtn.addEventListener("click",()=>{
   const txt=input.value.trim()||" ";
   render(txt);
 });
+</script>
+
+<!-- NOWL REPORT EMBED -->
+<iframe id="nowlReportFrame"
+  src="report.html"
+  style="position:fixed;inset:0;border:none;z-index:9999;display:none;">
+</iframe>
+
+<script>
+(function(){
+  "use strict";
+  const frame=document.getElementById('nowlReportFrame');
+  function showReport(){
+    frame.style.display='block';
+    setTimeout(()=>{frame.remove();},15000); // auto close after 15s
+  }
+
+  // make callable from anywhere
+  window.generateNowlReport=showReport;
+
+  // auto at night
+  const hour=new Date().getHours();
+  if(hour>=21||hour<6){ setTimeout(showReport,2000); }
+})();
 </script>
 
 </body>
