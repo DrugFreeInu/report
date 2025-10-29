@@ -29,10 +29,6 @@ hr{
   margin:15px 0;
   opacity:.3;
 }
-.section{
-  margin-top:10px;
-  padding-top:5px;
-}
 .footer{
   margin-top:20px;
   text-align:center;
@@ -54,8 +50,7 @@ async function generateIntelReport(){
   const start = performance.now();
 
   // ---- SITE HEALTH ----
-  let size = 0;
-  let latency = 0;
+  let size = 0, latency = 0;
   const domain = location.hostname || "Local Environment";
   try {
     const resp = await fetch(location.href);
@@ -74,48 +69,43 @@ async function generateIntelReport(){
     approxSize: `${size} bytes`
   };
 
-  // ---- STORAGE (localStorage only) ----
+  // ---- STORAGE FILE LIST ----
   let total = 0;
-  let dataMap = [];
+  let files = [];
   for (let key in localStorage){
     if (localStorage.hasOwnProperty(key)){
       const value = localStorage[key];
       const keySize = ((value.length + key.length) * 2) / 1024;
       total += keySize;
-      let hint = "Stored data";
-      if (key.toLowerCase().includes("intel")) hint = "Report cache";
-      else if (key.toLowerCase().includes("layer")) hint = "Editor layer";
-      else if (key.toLowerCase().includes("note")) hint = "User notepad data";
-      else if (key.toLowerCase().includes("setting")) hint = "User settings";
-      dataMap.push(`- ${key} (≈ ${keySize.toFixed(2)} KB) → ${hint}`);
+      files.push(`• ${key}`);
     }
   }
   const storageUsedKB = total.toFixed(2);
   const storage = {
     used: `${storageUsedKB} KB`,
-    type: "localStorage"
+    type: "localStorage",
+    files: files.length ? files : ["No local files found"]
   };
 
-  // ---- RENDER FINE ART INTEL DISPLAY ----
-  const report = 
+  // ---- RENDER FINAL REPORT ----
+  const report =
 `-----------------------------------------------
 NOWL PRO INTEL REPORT
 Generated: ${new Date().toLocaleString()}
 -----------------------------------------------
 🌐 SITE HEALTH
 ${JSON.stringify(siteHealth,null,2)}
-→ This shows how responsive and stable this bot’s site is.
+→ Shows how responsive and stable this bot’s site is.
 -----------------------------------------------
-💾 STORAGE
-${JSON.stringify(storage,null,2)}
-→ This shows how much space this bot is using on your device.
------------------------------------------------
-📂 LOCAL DATA MAP
-${dataMap.length ? dataMap.join("\n") : "No local data found."}
-→ These files exist only on your device and never leave it.
+💾 LOCAL STORAGE
+Used: ${storage.used}
+Type: ${storage.type}
+Files:
+${storage.files.join("\n")}
+→ Shows local save files stored on your device.
 -----------------------------------------------`;
 
-  // Smooth reveal animation
+  // Smooth typing animation
   const intel = document.getElementById("intel");
   intel.textContent = "";
   let i = 0;
