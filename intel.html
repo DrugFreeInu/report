@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NOWL PRO INTEL MODULE</title>
+<style>
+html,body{
+  margin:0;padding:20px;
+  background:#000;color:#0f0;
+  font-family:monospace;white-space:pre-line;
+  font-size:14px;
+}
+.section{
+  border-top:1px solid #333;
+  margin-top:10px;
+  padding-top:10px;
+}
+</style>
+</head>
+<body>
+<pre id="intel"></pre>
+<script>
+// --- CORE MODULE STRUCTURE ---
+async function generateIntelReport(){
+  const start = performance.now();
+
+  // ---- SITE HEALTH ----
+  const domain = location.hostname;
+  const response = await fetch(location.href);
+  const size = (await response.text()).length;
+  const latency = Math.round(performance.now() - start);
+
+  const siteHealth = {
+    domain,
+    status: "Online ✅",
+    responseTime: `${latency} ms`,
+    approxSize: `${size} bytes`,
+    anomaly: "None detected"
+  };
+
+  // ---- SYSTEM ----
+  const system = {
+    platform: navigator.platform,
+    cpuCores: navigator.hardwareConcurrency || "N/A",
+    screen: `${screen.width}×${screen.height} @${window.devicePixelRatio}x`,
+    colorDepth: `${screen.colorDepth}-bit`,
+    language: navigator.language
+  };
+
+  // ---- STORAGE ----
+  let storage = {used:"N/A",total:"N/A"};
+  if('storage' in navigator && navigator.storage.estimate){
+    const est = await navigator.storage.estimate();
+    storage = {
+      used: (est.usage/1048576).toFixed(2)+" MB",
+      total: (est.quota/1048576).toFixed(2)+" MB"
+    };
+  }
+
+  // ---- LOCAL LATENCY ----
+  const latencyTestStart = performance.now();
+  await fetch("https://1.1.1.1",{mode:"no-cors"});
+  const localLatency = Math.round(performance.now() - latencyTestStart)+" ms";
+
+  // ---- FINAL PACKAGE ----
+  const intel = {
+    generated: new Date().toLocaleString(),
+    siteHealth,
+    system,
+    storage,
+    localLatency
+  };
+
+  // ---- RENDER TEXT REPORT ----
+  document.getElementById("intel").textContent =
+`-----------------------------------------------
+NOWL PRO INTEL REPORT
+Generated: ${intel.generated}
+-----------------------------------------------
+🌐 SITE HEALTH
+${JSON.stringify(siteHealth,null,2)}
+
+🧠 SYSTEM
+${JSON.stringify(system,null,2)}
+
+💾 STORAGE
+${JSON.stringify(storage,null,2)}
+
+📡 LOCAL LATENCY
+${localLatency}
+-----------------------------------------------`;
+}
+generateIntelReport();
+</script>
+</body>
+</html>
