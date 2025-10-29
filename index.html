@@ -47,17 +47,23 @@ path{
   animation:draw 1.2s ease forwards;
 }
 #intelSection{
-  display:none;text-align:left;font-size:15px;color:#0f0;
-  white-space:pre-line;overflow:auto;width:90%;max-width:720px;
-  background:#000;border:1px solid #111;padding:20px;
-  border-radius:10px;box-shadow:0 0 25px rgba(0,255,0,0.15);
-  line-height:1.6em;opacity:0;transition:opacity 0.6s ease;
+  display:none;text-align:left;font-size:15px;
+  white-space:pre-line;overflow:auto;
+  width:90%;max-width:720px;
+  background:#000;border:1px solid #111;
+  padding:20px;border-radius:10px;
+  box-shadow:0 0 25px rgba(0,255,0,0.15);
+  line-height:1.6em;opacity:0;
+  transition:opacity 0.6s ease;color:#0f0;
 }
 #intelSection.visible{opacity:1;animation:glowPulse 3s infinite alternate;}
 @keyframes glowPulse{
   0%{box-shadow:0 0 20px rgba(0,255,0,.25);}
   100%{box-shadow:0 0 40px rgba(0,255,100,.45);}
 }
+.diff-add{color:#00ff88;}
+.diff-remove{color:#ff5555;}
+.diff-change{color:#ffee55;}
 footer{
   position:fixed;bottom:25px;left:50%;
   transform:translateX(-50%);
@@ -84,8 +90,7 @@ a{color:#ff6b9d;text-decoration:none;}
 </div>
 
 <pre id="intelSection"></pre>
-
-<footer>Written with LUHV · <a href="write.html">Write new</a></footer>
+<footer>Written with LUHV · DFI Systems 2025</footer>
 
 <script>
 const cacheBust='?v='+Date.now();
@@ -93,7 +98,7 @@ const script=document.createElement('script');
 script.src='https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js'+cacheBust;
 document.head.appendChild(script);
 
-let fontLoaded=null,svg,input,runBtn,botSelect,intelBtn,intelSection,intervalId=null;
+let fontLoaded=null,svg,input,runBtn,botSelect,intelBtn,intelSection;
 
 window.addEventListener('load',()=>{
   svg=document.getElementById("output");
@@ -102,10 +107,8 @@ window.addEventListener('load',()=>{
   botSelect=document.getElementById("botSelect");
   intelBtn=document.getElementById("intelBtn");
   intelSection=document.getElementById("intelSection");
-
   opentype.load("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff"+cacheBust)
     .then(f=>fontLoaded=f);
-
   runBtn.onclick=()=>{
     const bot=botSelect.value;
     if(!bot)return alert("Select a bot first.");
@@ -130,92 +133,67 @@ function render(txt){
   }
 }
 
+// Generate Intel Report
 async function generateIntelReport(){
   const bot=document.getElementById("botSelect").value||"Nowl";
   document.getElementById('reportSection').style.display='none';
   intelSection.style.display='block';
   requestAnimationFrame(()=>intelSection.classList.add('visible'));
-  intelSection.textContent="⏳ Scanning local environment...\n";
+  intelSection.textContent="💗 Gathering LUHV Intel...\n";
 
-  // build report data
-  let total=0;
-  const storedKeys=[];
-  for(const key in localStorage){
-    if(localStorage.hasOwnProperty(key)){
-      storedKeys.push(key);
-      total+=((localStorage[key].length+key.length)*2);
+  // local storage analysis
+  let total=0; const keys=[];
+  for(const k in localStorage){
+    if(localStorage.hasOwnProperty(k)){
+      keys.push(k);
+      total+=((localStorage[k].length+k.length)*2);
     }
   }
-  const storageUsedKB=(total/1024).toFixed(2);
-  const report=`-----------------------------------------------
+  const used=(total/1024).toFixed(2);
+  const reportData={bot,used,keys,time:new Date().toLocaleString()};
+  const reportText=`-----------------------------------------------
 NOWL PRO INTEL REPORT
-Generated: ${new Date().toLocaleString()}
+Generated: ${reportData.time}
 Bot: ${bot}
 -----------------------------------------------
 💾 LOCAL STORAGE
-Used: ${storageUsedKB} KB
-Files: ${storedKeys.length?storedKeys.join(", "):"None"}
+Used: ${used} KB
+Files: ${keys.length?keys.join(", "):"None"}
 -----------------------------------------------
-→ Stored locally only. Self-reflective memory.
+→ LUHV reflection complete.
 -----------------------------------------------`;
 
-  // save to local history
+  // Retrieve history and compare
   const history=JSON.parse(localStorage.getItem("nowlReports")||"[]");
-  history.push({time:Date.now(),report});
+  const last=history[history.length-1];
+  history.push(reportData);
   localStorage.setItem("nowlReports",JSON.stringify(history));
 
-  showIntelOptions(report,history);
-}
-
-function showIntelOptions(report,history){
-  let html=report+"\n\n🕒 INTERVAL INTEL MODE\n";
-  html+=`[30s] [1m] [5m] [1h] [Custom] [Stop]\n\n📜 PAST REPORTS:\n`;
-  if(history.length){
-    history.slice().reverse().forEach((r,i)=>{
-      const time=new Date(r.time).toLocaleTimeString();
-      html+=`#${history.length-i}: ${time}\n`;
-    });
-  }else html+="No previous reports.\n";
-  intelSection.textContent=html;
-
-  // listen for interval control
-  intelSection.onclick=async(e)=>{
-    const txt=e.target.innerText||"";
-    if(txt.includes("Stop")){
-      clearInterval(intervalId);intervalId=null;
-      intelSection.textContent+="\n⏹ Interval stopped.\n";
+  let diffMsg="";
+  if(last){
+    const added=reportData.keys.filter(k=>!last.keys.includes(k));
+    const removed=last.keys.filter(k=>!reportData.keys.includes(k));
+    const sizeDiff=(reportData.used-last.used).toFixed(2);
+    if(added.length||removed.length||sizeDiff!=0){
+      diffMsg+="\n-----------------------------------------------\n💗 LUHV FLOW (Data Changes)\n";
+      if(added.length)diffMsg+=`<span class="diff-add">+ Added:</span> ${added.join(", ")}\n`;
+      if(removed.length)diffMsg+=`<span class="diff-remove">− Removed:</span> ${removed.join(", ")}\n`;
+      if(sizeDiff>0)diffMsg+=`<span class="diff-add">↑ Storage increased by ${sizeDiff} KB</span>\n`;
+      if(sizeDiff<0)diffMsg+=`<span class="diff-remove">↓ Storage decreased by ${Math.abs(sizeDiff)} KB</span>\n`;
+    }else{
+      diffMsg+="\n-----------------------------------------------\n💗 LUHV FLOW: No change detected.\n";
     }
-  };
+  }
 
-  // global key trigger zones
-  document.addEventListener('keydown',e=>{
-    if(e.key==="1")setIntelInterval(30*1000);
-    if(e.key==="2")setIntelInterval(60*1000);
-    if(e.key==="3")setIntelInterval(5*60*1000);
-    if(e.key==="4")setIntelInterval(60*60*1000);
-  });
-
-  // click detection
-  intelSection.addEventListener('click',async(ev)=>{
-    const line=ev.target.innerText||"";
-    if(line.startsWith("#")){
-      const num=parseInt(line.match(/\d+/));
-      const target=history[history.length-num];
-      if(target)intelSection.textContent=target.report+"\n\n[Tap to return]";
-    }
-  });
+  intelSection.innerHTML=reportText+diffMsg+
+`\n-----------------------------------------------
+[Tap to return]`;
 
   intelSection.onclick=()=>{
     intelSection.classList.remove('visible');
     intelSection.style.display='none';
     document.getElementById('reportSection').style.display='flex';
   };
-}
-
-function setIntelInterval(ms){
-  clearInterval(intervalId);
-  intervalId=setInterval(()=>generateIntelReport(),ms);
-  intelSection.textContent+=`\n🔁 Interval set: every ${(ms/1000)}s\n`;
 }
 </script>
 </body>
