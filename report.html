@@ -16,9 +16,9 @@ html,body{
   opacity:0;
   white-space:pre-line;
   text-align:center;
-  font-size:1.15em;
-  line-height:1.7em;
-  padding:25px 35px;
+  font-size:1.1em;
+  line-height:1.6em;
+  padding:25px 30px;
   border:1px solid rgba(255,255,255,.2);
   border-radius:10px;
   background:rgba(0,0,0,.85);
@@ -26,53 +26,115 @@ html,body{
   transition:opacity 2s ease;
 }
 @keyframes wind {
-  0%   {filter:blur(0px) opacity(0);}
-  10%  {filter:blur(0px) opacity(1);}
-  90%  {filter:blur(0px) opacity(1);}
-  100% {filter:blur(12px) opacity(0);}
+  0%{filter:blur(0px) opacity(0);}
+  10%{filter:blur(0px) opacity(1);}
+  90%{filter:blur(0px) opacity(1);}
+  100%{filter:blur(12px) opacity(0);}
 }
 </style>
 </head>
 <body>
-<div id="nowlReport">tap to generate report 🦉</div>
+<div id="nowlReport">🦉 Gathering wind data...</div>
 <script>
-(function(){
-  "use strict";
-  const report=document.getElementById('nowlReport');
-  let active=false;
-  const savedIntel=localStorage.getItem("nowlIntel");
-  localStorage.removeItem("nowlIntel");
+(async function(){
+"use strict";
+const report=document.getElementById('nowlReport');
+let active=false;
 
-  function buildReport(){
-    const time=new Date().toLocaleString();
-    if(savedIntel){
-      return `${savedIntel}\n\nGenerated: ${time}`;
-    }
-    return `NOWL REPORT\n${time}\nSystem nominal.\nWind secured.`;
-  }
+// stored intel from index.html
+const savedIntel=localStorage.getItem("nowlIntel");
+localStorage.removeItem("nowlIntel");
 
-  function showReport(){
-    if(active)return;
-    active=true;
-    report.textContent=buildReport();
-    report.style.opacity='1';
-    report.style.animation='wind 18s ease forwards';
-    // leave visible long enough to read, then fade
-    setTimeout(()=>selfDestruct(),18000);
-  }
+// get battery info
+async function getBatteryInfo(){
+  try{
+    const b=await navigator.getBattery();
+    return Math.round(b.level*100)+"%";
+  }catch{ return "Unknown"; }
+}
 
-  function selfDestruct(){
-    report.style.transition='opacity 2s';
-    report.style.opacity='0';
-    setTimeout(()=>{report.remove();},2500);
-  }
+// connection type
+function getConnection(){
+  try{
+    return navigator.connection?.effectiveType?.toUpperCase() || "Unknown";
+  }catch{return "Unknown";}
+}
 
-  const hour=new Date().getHours();
-  if(savedIntel||hour>=21||hour<6){
-    setTimeout(showReport,800);
-  }
+// load time
+const loadTime=(performance.now()/1000).toFixed(2)+"s";
 
-  report.addEventListener('click',showReport);
+// time since last report
+let last=localStorage.getItem("lastReportTime");
+const now=Date.now();
+let since="First report";
+if(last){
+  const diff=now-parseInt(last);
+  const mins=Math.floor(diff/60000);
+  const hrs=Math.floor(mins/60);
+  since=hrs>0?`${hrs}h ${mins%60}m ago`:`${mins}m ago`;
+}
+localStorage.setItem("lastReportTime",now.toString());
+
+// bots quick status (static examples)
+const bots=[
+  "Echo Jr: Online – Synced",
+  "Ancr: Vault Secure",
+  "Keel: Balanced",
+  "4ncr: Wallets Active",
+  "Nowl: Watching quietly"
+];
+
+// compute LUHV index (mocked with real signal strength + battery)
+function computeLuhv(battery,conn){
+  let base=80;
+  if(conn.includes("5G")||conn.includes("WIFI"))base+=10;
+  const num=parseInt(battery)||80;
+  base+=Math.min(num/10,10);
+  return Math.min(base,100);
+}
+
+async function buildReport(){
+  const battery=await getBatteryInfo();
+  const conn=getConnection();
+  const luhv=computeLuhv(battery,conn);
+  const hearts="💗".repeat(Math.round(luhv/20));
+  const time=new Date().toLocaleString();
+
+  let intelBlock="";
+  if(savedIntel) intelBlock=savedIntel+"\n\n";
+
+  return `${intelBlock}NOWL INTEL REPORT
+Generated: ${time}
+
+${bots.join("\n")}
+
+Connection: ${conn}
+Battery: ${battery}
+Page Load: ${loadTime}
+Last Report: ${since}
+
+LUHV Index: ${luhv} / 100 ${hearts}`;
+}
+
+async function showReport(){
+  if(active)return;active=true;
+  const txt=await buildReport();
+  report.textContent=txt;
+  report.style.opacity='1';
+  report.style.animation='wind 20s ease forwards';
+  setTimeout(()=>selfDestruct(),20000);
+}
+
+function selfDestruct(){
+  report.style.transition='opacity 2s';
+  report.style.opacity='0';
+  setTimeout(()=>report.remove(),2500);
+}
+
+// auto run if triggered at night or from index
+const hour=new Date().getHours();
+if(savedIntel||hour>=21||hour<6){ setTimeout(showReport,1000); }
+report.addEventListener('click',showReport);
 })();
 </script>
 </body>
