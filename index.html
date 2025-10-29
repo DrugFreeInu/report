@@ -22,6 +22,9 @@ html,body{
 }
 
 /* input */
+#textInput,#botSelect,button{
+  transition:opacity .3s ease;
+}
 #textInput{
   margin-bottom:15px;
   font-size:20px;
@@ -33,8 +36,6 @@ html,body{
   background:#111;
   color:#ff4f9d;
 }
-
-/* dropdown */
 #botSelect{
   margin-bottom:15px;
   font-size:18px;
@@ -46,8 +47,6 @@ html,body{
   color:#ff4f9d;
   box-shadow:0 0 20px rgba(255,47,137,0.4);
 }
-
-/* buttons */
 button{
   font-size:18px;
   font-weight:700;
@@ -59,20 +58,14 @@ button{
   margin:8px 0;
   cursor:pointer;
   box-shadow:0 0 20px rgba(255,47,137,0.4);
-  transition:transform .1s ease,box-shadow .3s ease;
 }
-button:active{transform:scale(0.97);}
 button:hover{box-shadow:0 0 30px rgba(255,47,137,0.7);}
-
-/* svg */
 svg{
   width:90%;
   max-width:700px;
   filter:drop-shadow(0 0 10px rgba(255,47,137,.8))
           drop-shadow(0 0 20px rgba(255,47,137,.4));
 }
-
-/* draw animation */
 @keyframes draw{to{stroke-dashoffset:0;}}
 path{
   fill:none;
@@ -85,9 +78,27 @@ path{
   animation:draw 1.2s ease forwards;
 }
 
+/* intel section */
+#intelSection{
+  display:none;
+  text-align:left;
+  font-size:14px;
+  color:#0f0;
+  white-space:pre-line;
+  overflow:auto;
+  width:90%;
+  max-width:700px;
+  background:#000;
+  border:1px solid #222;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 0 20px rgba(0,255,0,0.2);
+}
+
+/* footer */
 footer{
   position:fixed;
-  bottom:30px;
+  bottom:25px;
   left:50%;
   transform:translateX(-50%);
   color:#ff6b9d;
@@ -100,6 +111,8 @@ a{color:#ff6b9d;text-decoration:none;}
 </head>
 <body>
 
+<!-- MAIN NOWL REPORT UI -->
+<div id="reportSection">
 <select id="botSelect">
   <option value="">Select bot</option>
   <option value="Echo Jr">Echo Jr</option>
@@ -112,54 +125,29 @@ a{color:#ff6b9d;text-decoration:none;}
 <input id="textInput" placeholder="Type text..." value="NOWL REPORT" />
 <button id="runBtn">Run</button>
 <svg id="output" viewBox="0 0 1000 200"></svg>
-
 <button id="reportBtn">Generate Report</button>
+<button id="intelBtn">Intel Mode</button>
+</div>
+
+<!-- INTEL MODULE -->
+<pre id="intelSection"></pre>
 
 <footer>Written with LUHV · <a href="write.html">Write new</a></footer>
 
-<!-- opentype.js -->
 <script>
 const cacheBust='?v='+Date.now();
 const script=document.createElement('script');
 script.src='https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js'+cacheBust;
 document.head.appendChild(script);
-</script>
 
-<script>
-let fontLoaded=null,svg,input,runBtn,botSelect,reportBtn;
+let fontLoaded=null,svg,input,runBtn,botSelect,reportBtn,intelBtn,intelSection;
 
 const botIntel={
-  "Echo Jr":[
-    "Domain: echojr.website",
-    "Status: Online",
-    "Role: Update God",
-    "Latest task: Code synchronization check",
-    "LUHV Level: 💗💗💗💗💗"
-  ],
-  "Ancr":[
-    "Domain: ancr.website",
-    "Status: Active",
-    "Role: Memory Vault Keeper",
-    "Latest task: Snapshot archive verification"
-  ],
-  "Keel":[
-    "Domain: keel.website",
-    "Status: Docked",
-    "Role: Balance & Stability Node",
-    "Latest task: Load distribution calibration"
-  ],
-  "4ncr":[
-    "Domain: 4ncr.website",
-    "Status: Monitoring",
-    "Role: Wallet Visualizer",
-    "Latest task: Token count refresh"
-  ],
-  "Nowl":[
-    "Domain: nowl.website",
-    "Status: Stealth mode",
-    "Role: Night Intel",
-    "Latest task: Wind-written audit"
-  ]
+  "Echo Jr":["Domain: echojr.website","Status: Online","Role: Update God","Latest task: Code sync","LUHV: 💗💗💗💗💗"],
+  "Ancr":["Domain: ancr.website","Status: Active","Role: Vault Keeper","Latest task: Snapshot archive"],
+  "Keel":["Domain: keel.website","Status: Docked","Role: Stability Node","Latest task: Load calibration"],
+  "4ncr":["Domain: 4ncr.website","Status: Monitoring","Role: Wallet Visualizer","Latest task: Token refresh"],
+  "Nowl":["Domain: nowl.website","Status: Stealth","Role: Night Intel","Latest task: Wind audit"]
 };
 
 window.addEventListener('load',()=>{
@@ -168,51 +156,40 @@ window.addEventListener('load',()=>{
   runBtn=document.getElementById("runBtn");
   botSelect=document.getElementById("botSelect");
   reportBtn=document.getElementById("reportBtn");
+  intelBtn=document.getElementById("intelBtn");
+  intelSection=document.getElementById("intelSection");
 
   opentype.load("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff"+cacheBust)
     .then(f=>fontLoaded=f);
 
-  runBtn.addEventListener("click",()=>{
+  runBtn.onclick=()=>{
     const bot=botSelect.value;
-    if(!bot){alert("Please select a bot first.");return;}
-    const txt=`${bot.toUpperCase()} REPORT`;
-    render(txt);
-  });
+    if(!bot)return alert("Select a bot first.");
+    render(`${bot.toUpperCase()} REPORT`);
+  };
 
-  reportBtn.addEventListener("click",()=>{
+  reportBtn.onclick=()=>{
     const bot=botSelect.value;
-    if(!bot){alert("Please select a bot first.");return;}
+    if(!bot)return alert("Select a bot first.");
     const intel=botIntel[bot]?.join("\n")||"No intel available.";
     const reportText=`${bot.toUpperCase()} REPORT\n${intel}`;
     localStorage.setItem("nowlIntel",reportText);
-
     const frame=document.createElement('iframe');
     frame.src='report.html?v='+Date.now();
-    frame.setAttribute('allowfullscreen','true');
-    frame.style.position='fixed';
-    frame.style.inset='0';
-    frame.style.border='none';
-    frame.style.zIndex='9999';
-    frame.style.width='100vw';
-    frame.style.height='100vh';
-    frame.style.background='black';
-    frame.style.padding='env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
-    frame.style.overflow='auto';
-    frame.style.touchAction='auto';
+    Object.assign(frame.style,{position:'fixed',inset:'0',border:'none',zIndex:'9999',width:'100vw',height:'100vh',background:'black'});
     document.body.appendChild(frame);
+    setTimeout(()=>frame.remove(),25000);
+  };
 
-    // remove after 25s
-    setTimeout(()=>{frame.remove();},25000);
-  });
+  intelBtn.onclick=()=>generateIntelReport();
 });
 
 function render(txt){
   if(!fontLoaded)return;
   svg.innerHTML="";
   const font=fontLoaded;
-  const letters=txt.split("");
-  let x=20;const y=120;const size=100;
-  letters.forEach((ch,i)=>{
+  let x=20,y=120,size=100;
+  for(const [i,ch] of [...txt].entries()){
     const p=font.getPath(ch,x,y,size);
     const d=p.toPathData(2);
     const path=document.createElementNS("http://www.w3.org/2000/svg","path");
@@ -220,7 +197,61 @@ function render(txt){
     path.style.animationDelay=`${i*1}s`;
     svg.appendChild(path);
     x+=font.getAdvanceWidth(ch,size)+10;
-  });
+  }
+}
+
+// INTEL MODULE
+async function generateIntelReport(){
+  document.getElementById('reportSection').style.display='none';
+  intelSection.style.display='block';
+  intelSection.textContent="Initializing NOWL PRO INTEL REPORT...\n";
+  const start=performance.now();
+  const domain=location.hostname;
+  const resp=await fetch(location.href);
+  const size=(await resp.text()).length;
+  const latency=Math.round(performance.now()-start);
+  const system={
+    platform:navigator.platform,
+    cpuCores:navigator.hardwareConcurrency||"N/A",
+    screen:`${screen.width}×${screen.height}@${window.devicePixelRatio}x`,
+    colorDepth:`${screen.colorDepth}-bit`,
+    language:navigator.language
+  };
+  let storage={used:"N/A",total:"N/A"};
+  if('storage' in navigator && navigator.storage.estimate){
+    const e=await navigator.storage.estimate();
+    storage={used:(e.usage/1048576).toFixed(2)+" MB",total:(e.quota/1048576).toFixed(2)+" MB"};
+  }
+  const latencyTestStart=performance.now();
+  await fetch("https://1.1.1.1",{mode:"no-cors"});
+  const localLatency=Math.round(performance.now()-latencyTestStart)+" ms";
+  intelSection.textContent=
+`-----------------------------------------------
+NOWL PRO INTEL REPORT
+Generated: ${new Date().toLocaleString()}
+-----------------------------------------------
+🌐 SITE HEALTH
+Domain: ${domain}
+Status: Online ✅
+Response Time: ${latency} ms
+Approx. Size: ${size} bytes
+-----------------------------------------------
+🧠 SYSTEM
+${JSON.stringify(system,null,2)}
+-----------------------------------------------
+💾 STORAGE
+${JSON.stringify(storage,null,2)}
+-----------------------------------------------
+📡 LOCAL LATENCY
+${localLatency}
+-----------------------------------------------
+[Press Back to Return]`;
+
+  // Tap to return
+  intelSection.onclick=()=>{
+    intelSection.style.display='none';
+    document.getElementById('reportSection').style.display='flex';
+  };
 }
 </script>
 </body>
