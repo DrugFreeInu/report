@@ -9,71 +9,135 @@
 <meta http-equiv="Expires" content="0">
 <style>
 html,body{
-  margin:0;height:100%;
-  display:flex;flex-direction:column;
-  justify-content:center;align-items:center;
-  background:#000;color:#fff;
-  overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  margin:0;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:#000;
+  color:#fff;
+  overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
+
+/* INPUTS */
 #textInput,#botSelect,button{transition:opacity .3s ease;}
 #textInput{
-  margin-bottom:15px;font-size:20px;padding:10px 20px;
-  border-radius:30px;border:none;outline:none;
-  text-align:center;background:#111;color:#ff4f9d;
+  margin-bottom:15px;
+  font-size:20px;
+  padding:10px 20px;
+  border-radius:30px;
+  border:none;
+  outline:none;
+  text-align:center;
+  background:#111;
+  color:#ff4f9d;
 }
 #botSelect{
-  margin-bottom:15px;font-size:18px;padding:10px 20px;
-  border-radius:25px;border:none;outline:none;
-  background:#111;color:#ff4f9d;
+  margin-bottom:15px;
+  font-size:18px;
+  padding:10px 20px;
+  border-radius:25px;
+  border:none;
+  outline:none;
+  background:#111;
+  color:#ff4f9d;
   box-shadow:0 0 20px rgba(255,47,137,0.4);
 }
 button{
-  font-size:18px;font-weight:700;color:#fff;
-  background:#ff4f9d;border:none;border-radius:25px;
-  padding:10px 30px;margin:8px 0;cursor:pointer;
+  font-size:18px;
+  font-weight:700;
+  color:#fff;
+  background:#ff4f9d;
+  border:none;
+  border-radius:25px;
+  padding:10px 30px;
+  margin:8px 0;
+  cursor:pointer;
   box-shadow:0 0 20px rgba(255,47,137,0.4);
 }
 button:hover{box-shadow:0 0 30px rgba(255,47,137,0.7);}
 svg{
-  width:90%;max-width:700px;
+  width:90%;
+  max-width:700px;
   filter:drop-shadow(0 0 10px rgba(255,47,137,.8))
           drop-shadow(0 0 20px rgba(255,47,137,.4));
 }
 @keyframes draw{to{stroke-dashoffset:0;}}
 path{
-  fill:none;stroke:#ff4f9d;stroke-width:2;
-  stroke-linecap:round;stroke-linejoin:round;
-  stroke-dasharray:1000;stroke-dashoffset:1000;
+  fill:none;
+  stroke:#ff4f9d;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:1000;
+  stroke-dashoffset:1000;
   animation:draw 1.2s ease forwards;
 }
+
+/* INTEL SECTION */
 #intelSection{
-  display:none;text-align:left;font-size:15px;
-  white-space:pre-line;overflow:auto;
-  width:90%;max-width:720px;
-  background:#000;border:1px solid #111;
-  padding:20px;border-radius:10px;
+  display:none;
+  text-align:left;
+  font-size:15px;
+  color:#0f0;
+  white-space:pre-line;
+  overflow:auto;
+  width:90%;
+  max-width:720px;
+  background:#000;
+  border:1px solid #111;
+  padding:20px;
+  border-radius:10px;
   box-shadow:0 0 25px rgba(0,255,0,0.15);
-  line-height:1.6em;opacity:0;
-  transition:opacity 0.6s ease;color:#0f0;
+  line-height:1.6em;
+  opacity:0;
+  transition:opacity 0.6s ease;
 }
 #intelSection.visible{opacity:1;animation:glowPulse 3s infinite alternate;}
 @keyframes glowPulse{
   0%{box-shadow:0 0 20px rgba(0,255,0,.25);}
   100%{box-shadow:0 0 40px rgba(0,255,100,.45);}
 }
-.diff-add{color:#00ff88;}
-.diff-remove{color:#ff5555;}
-.diff-change{color:#ffee55;}
+
+/* REPORT BUTTON BOXES */
+.reportButton{
+  display:block;
+  background:#002200;
+  color:#00ff88;
+  border:1px solid #0f0;
+  border-radius:8px;
+  padding:10px 12px;
+  margin:6px 0;
+  cursor:pointer;
+  font-family:monospace;
+  text-align:center;
+  transition:all .2s;
+  box-shadow:0 0 10px rgba(0,255,0,.2);
+}
+.reportButton:hover{
+  background:#004400;
+  box-shadow:0 0 25px rgba(0,255,0,.5);
+}
+
+/* FOOTER */
 footer{
-  position:fixed;bottom:25px;left:50%;
+  position:fixed;
+  bottom:25px;
+  left:50%;
   transform:translateX(-50%);
-  color:#ff6b9d;font-size:14px;opacity:.7;font-weight:600;
+  color:#ff6b9d;
+  font-size:14px;
+  opacity:.7;
+  font-weight:600;
 }
 a{color:#ff6b9d;text-decoration:none;}
 </style>
 </head>
 <body>
 
+<!-- MAIN NOWL REPORT UI -->
 <div id="reportSection">
 <select id="botSelect">
   <option value="">Select bot</option>
@@ -83,14 +147,17 @@ a{color:#ff6b9d;text-decoration:none;}
   <option value="4ncr">4ncr</option>
   <option value="Nowl">Nowl</option>
 </select>
+
 <input id="textInput" placeholder="Type text..." value="NOWL REPORT" />
 <button id="runBtn">Run</button>
 <svg id="output" viewBox="0 0 1000 200"></svg>
 <button id="intelBtn">Intel Mode</button>
 </div>
 
+<!-- INTEL MODULE -->
 <pre id="intelSection"></pre>
-<footer>Written with LUHV · DFI Systems 2025</footer>
+
+<footer>Written with LUHV · <a href="write.html">Write new</a></footer>
 
 <script>
 const cacheBust='?v='+Date.now();
@@ -107,13 +174,16 @@ window.addEventListener('load',()=>{
   botSelect=document.getElementById("botSelect");
   intelBtn=document.getElementById("intelBtn");
   intelSection=document.getElementById("intelSection");
+
   opentype.load("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff"+cacheBust)
     .then(f=>fontLoaded=f);
+
   runBtn.onclick=()=>{
     const bot=botSelect.value;
     if(!bot)return alert("Select a bot first.");
     render(`${bot.toUpperCase()} REPORT`);
   };
+
   intelBtn.onclick=()=>generateIntelReport();
 });
 
@@ -133,67 +203,88 @@ function render(txt){
   }
 }
 
-// Generate Intel Report
+// INTEL MODULE
 async function generateIntelReport(){
   const bot=document.getElementById("botSelect").value||"Nowl";
   document.getElementById('reportSection').style.display='none';
   intelSection.style.display='block';
   requestAnimationFrame(()=>intelSection.classList.add('visible'));
-  intelSection.textContent="💗 Gathering LUHV Intel...\n";
+  intelSection.textContent="⏳ Running LUHV reflection scan...\n";
 
-  // local storage analysis
-  let total=0; const keys=[];
-  for(const k in localStorage){
-    if(localStorage.hasOwnProperty(k)){
-      keys.push(k);
-      total+=((localStorage[k].length+k.length)*2);
-    }
-  }
-  const used=(total/1024).toFixed(2);
-  const reportData={bot,used,keys,time:new Date().toLocaleString()};
-  const reportText=`-----------------------------------------------
+  const prefix="intel_log_"+bot+"_";
+  const logKey=prefix+new Date().toISOString();
+  const oldUsage=Object.keys(localStorage).reduce((sum,k)=>sum+(localStorage[k].length||0),0);
+
+  // SAVE REPORT LOCALLY
+  const reportData={
+    generated:new Date().toLocaleString(),
+    bot,
+    storage:Object.keys(localStorage)
+  };
+  localStorage.setItem(logKey,JSON.stringify(reportData,null,2));
+
+  // STORAGE ANALYSIS
+  const used=Object.keys(localStorage)
+    .reduce((sum,k)=>sum+(localStorage[k].length||0),0)/1024;
+  const diff=(used-(oldUsage/1024)).toFixed(2);
+  const files=Object.keys(localStorage);
+  const fileList=files.map(f=>"• "+f).join("\n");
+
+  // CREATE REPORT OUTPUT
+  let report=
+`-----------------------------------------------
 NOWL PRO INTEL REPORT
-Generated: ${reportData.time}
-Bot: ${bot}
+Generated: ${new Date().toLocaleString()}
 -----------------------------------------------
 💾 LOCAL STORAGE
-Used: ${used} KB
-Files: ${keys.length?keys.join(", "):"None"}
+Used: ${used.toFixed(2)} KB
+Files:
+${fileList}
+→ These are this bot’s save files stored locally on your device.
 -----------------------------------------------
 → LUHV reflection complete.
------------------------------------------------`;
+-----------------------------------------------
+💗 LUHV FLOW (Data Changes)
+↑ Storage increased by ${diff} KB
+-----------------------------------------------
+📂 Tap below to view saved reports:
+`;
 
-  // Retrieve history and compare
-  const history=JSON.parse(localStorage.getItem("nowlReports")||"[]");
-  const last=history[history.length-1];
-  history.push(reportData);
-  localStorage.setItem("nowlReports",JSON.stringify(history));
+  // ADD SAVED REPORT BUTTONS
+  const logs=Object.keys(localStorage).filter(k=>k.startsWith("intel_log_")).reverse();
+  logs.forEach(k=>{
+    const div=document.createElement("div");
+    div.textContent=k.replace(prefix,"");
+    div.className="reportButton";
+    div.onclick=()=>openReport(k);
+    intelSection.appendChild(div);
+  });
 
-  let diffMsg="";
-  if(last){
-    const added=reportData.keys.filter(k=>!last.keys.includes(k));
-    const removed=last.keys.filter(k=>!reportData.keys.includes(k));
-    const sizeDiff=(reportData.used-last.used).toFixed(2);
-    if(added.length||removed.length||sizeDiff!=0){
-      diffMsg+="\n-----------------------------------------------\n💗 LUHV FLOW (Data Changes)\n";
-      if(added.length)diffMsg+=`<span class="diff-add">+ Added:</span> ${added.join(", ")}\n`;
-      if(removed.length)diffMsg+=`<span class="diff-remove">− Removed:</span> ${removed.join(", ")}\n`;
-      if(sizeDiff>0)diffMsg+=`<span class="diff-add">↑ Storage increased by ${sizeDiff} KB</span>\n`;
-      if(sizeDiff<0)diffMsg+=`<span class="diff-remove">↓ Storage decreased by ${Math.abs(sizeDiff)} KB</span>\n`;
-    }else{
-      diffMsg+="\n-----------------------------------------------\n💗 LUHV FLOW: No change detected.\n";
+  // APPEND REPORT HEADER ABOVE BUTTONS
+  intelSection.textContent=report;
+  logs.forEach(k=>{
+    const div=document.createElement("div");
+    div.textContent=k.replace(prefix,"");
+    div.className="reportButton";
+    div.onclick=()=>openReport(k);
+    intelSection.appendChild(div);
+  });
+
+  intelSection.onclick=e=>{
+    if(e.target===intelSection){
+      intelSection.classList.remove('visible');
+      intelSection.style.display='none';
+      document.getElementById('reportSection').style.display='flex';
     }
-  }
-
-  intelSection.innerHTML=reportText+diffMsg+
-`\n-----------------------------------------------
-[Tap to return]`;
-
-  intelSection.onclick=()=>{
-    intelSection.classList.remove('visible');
-    intelSection.style.display='none';
-    document.getElementById('reportSection').style.display='flex';
   };
+}
+
+// open report content
+function openReport(key){
+  const data=localStorage.getItem(key);
+  if(!data)return alert("Report not found.");
+  const w=window.open();
+  w.document.write("<pre style='background:#000;color:#0f0;padding:20px;font-family:monospace;white-space:pre-wrap;'>"+data+"</pre>");
 }
 </script>
 </body>
