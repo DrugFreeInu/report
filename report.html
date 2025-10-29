@@ -16,12 +16,12 @@ html,body{
   opacity:0;
   white-space:pre-line;
   text-align:center;
-  font-size:1.2em;
+  font-size:1.1em;
   line-height:1.6em;
-  padding:20px;
+  padding:25px 30px;
   border:1px solid rgba(255,255,255,.2);
   border-radius:10px;
-  background:rgba(0,0,0,.7);
+  background:rgba(0,0,0,.75);
   filter:drop-shadow(0 0 10px rgba(255,255,255,.4));
   transition:opacity 3s ease;
 }
@@ -40,8 +40,17 @@ html,body{
   const report = document.getElementById('nowlReport');
   let active = false;
 
+  // pull intel passed from index.html
+  const savedIntel = localStorage.getItem("nowlIntel");
+  localStorage.removeItem("nowlIntel"); // one-time use only
+
   function buildReport(){
     const time = new Date().toLocaleString();
+    // if there’s saved intel, include it
+    if(savedIntel){
+      return `${savedIntel}\n\nGenerated: ${time}`;
+    }
+    // fallback if opened manually
     return `NOWL REPORT\n${time}\nSystem nominal.\nWind secured.`;
   }
 
@@ -49,20 +58,25 @@ html,body{
     if(active) return;
     active = true;
     report.textContent = buildReport();
-    report.style.opacity='1';
-    report.style.animation='wind 12s ease forwards';
-    setTimeout(()=>selfDestruct(),12000);
+    report.style.opacity = '1';
+    report.style.animation = 'wind 14s ease forwards';
+    setTimeout(()=>selfDestruct(),14000);
   }
 
   function selfDestruct(){
-    report.style.transition='opacity 3s';
-    report.style.opacity='0';
+    report.style.transition = 'opacity 3s';
+    report.style.opacity = '0';
     setTimeout(()=>{ report.remove(); },3000);
   }
 
+  // auto-show at night or when intel exists
   const hour = new Date().getHours();
-  if(hour>=21||hour<6){ setTimeout(showReport,2000); }
-  report.addEventListener('click',showReport);
+  if(savedIntel || hour >= 21 || hour < 6){
+    setTimeout(showReport, 800);
+  }
+
+  // tap manually to run again
+  report.addEventListener('click', showReport);
 })();
 </script>
 </body>
