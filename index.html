@@ -10,16 +10,25 @@ html,body{
   display:flex;flex-direction:column;
   justify-content:center;align-items:center;
   background:#000;color:#fff;overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 
-/* input box */
+/* input */
 #textInput{
   margin-bottom:15px;font-size:20px;padding:10px 20px;
   border-radius:30px;border:none;outline:none;
   text-align:center;background:#111;color:#ff4f9d;
 }
 
-/* run button */
+/* dropdown */
+#botSelect{
+  margin-bottom:15px;font-size:18px;
+  padding:10px 20px;border-radius:25px;
+  border:none;outline:none;background:#111;color:#ff4f9d;
+  box-shadow:0 0 20px rgba(255,47,137,0.4);
+}
+
+/* button */
 #runBtn{
   font-size:18px;font-weight:700;
   color:#fff;background:#ff4f9d;
@@ -32,7 +41,7 @@ html,body{
 #runBtn:active{transform:scale(0.97);}
 #runBtn:hover{box-shadow:0 0 30px rgba(255,47,137,0.7);}
 
-/* svg area */
+/* svg */
 svg{
   width:90%;max-width:700px;
   filter:drop-shadow(0 0 10px rgba(255,47,137,.8))
@@ -40,9 +49,7 @@ svg{
 }
 
 /* draw animation */
-@keyframes draw{
-  to{stroke-dashoffset:0;}
-}
+@keyframes draw{to{stroke-dashoffset:0;}}
 path{
   fill:none;
   stroke:#ff4f9d;
@@ -63,6 +70,15 @@ a{color:#ff6b9d;text-decoration:none;}
 </head>
 <body>
 
+<select id="botSelect">
+  <option value="">Select bot</option>
+  <option value="Echo Jr">Echo Jr</option>
+  <option value="Ancr">Ancr</option>
+  <option value="Keel">Keel</option>
+  <option value="4ncr">4ncr</option>
+  <option value="Nowl">Nowl</option>
+</select>
+
 <input id="textInput" placeholder="Type text..." value="NOWL REPORT" />
 <button id="runBtn">Run</button>
 <svg id="output" viewBox="0 0 1000 200"></svg>
@@ -75,9 +91,10 @@ a{color:#ff6b9d;text-decoration:none;}
 const svg=document.getElementById("output");
 const input=document.getElementById("textInput");
 const runBtn=document.getElementById("runBtn");
+const botSelect=document.getElementById("botSelect");
 let fontLoaded=null;
 
-// load Inter font
+// load Inter
 opentype.load("https://cdn.jsdelivr.net/npm/@fontsource/inter/files/inter-latin-400-normal.woff")
   .then(f=>fontLoaded=f)
   .catch(err=>alert("Font load failed "+err));
@@ -88,7 +105,6 @@ function render(txt){
   const font=fontLoaded;
   const letters=txt.split("");
   let x=20;const y=120;const size=100;
-
   letters.forEach((ch,i)=>{
     const p=font.getPath(ch,x,y,size);
     const d=p.toPathData(2);
@@ -100,9 +116,13 @@ function render(txt){
   });
 }
 
+// run button logic
 runBtn.addEventListener("click",()=>{
-  const txt=input.value.trim()||" ";
+  const bot=botSelect.value;
+  if(!bot){alert("Please select a bot first.");return;}
+  const txt=`${bot.toUpperCase()} REPORT`;
   render(txt);
+  setTimeout(()=>generateNowlReport(),1500);
 });
 </script>
 
@@ -118,13 +138,9 @@ runBtn.addEventListener("click",()=>{
   const frame=document.getElementById('nowlReportFrame');
   function showReport(){
     frame.style.display='block';
-    setTimeout(()=>{frame.remove();},15000); // auto close after 15s
+    setTimeout(()=>{frame.remove();},15000);
   }
-
-  // make callable from anywhere
   window.generateNowlReport=showReport;
-
-  // auto at night
   const hour=new Date().getHours();
   if(hour>=21||hour<6){ setTimeout(showReport,2000); }
 })();
