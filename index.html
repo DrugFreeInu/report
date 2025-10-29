@@ -148,7 +148,7 @@ function render(txt){
   }
 }
 
-// --- INTEL MODULE (Auto Save + History Viewer) ---
+// --- INTEL MODULE (Auto Save + Working History Viewer) ---
 async function generateIntelReport(){
   const bot=document.getElementById("botSelect").value||"Nowl";
   document.getElementById('reportSection').style.display='none';
@@ -187,7 +187,7 @@ This information never leaves your device.
   const key=`intel_log_${bot}_${timestamp}`;
   localStorage.setItem(key,report);
 
-  // render report + history list
+  // render report + working history list
   showReport(report);
   appendHistoryList();
 }
@@ -202,10 +202,20 @@ function appendHistoryList(){
     const link=document.createElement("div");
     link.className="reportLink";
     link.textContent=k.replace("intel_log_","");
-    link.onclick=()=>{intelSection.textContent=localStorage.getItem(k)+"\n\n[Tap to return]";};
+    link.onclick=(e)=>{
+      e.stopPropagation(); // prevent closing
+      const old=localStorage.getItem(k);
+      intelSection.textContent=old+"\n\n[Tap anywhere to return]";
+      intelSection.onclick=()=>{
+        intelSection.classList.remove('visible');
+        intelSection.style.display='none';
+        document.getElementById('reportSection').style.display='flex';
+      };
+    };
     intelSection.appendChild(link);
   });
-  // return tap
+
+  // return tap for main section
   intelSection.onclick=()=>{
     intelSection.classList.remove('visible');
     intelSection.style.display='none';
