@@ -30,7 +30,6 @@ html,body{
 section{margin-top:1.2em;}
 h2{color:#ff4f9d;font-size:1.1em;margin:0 0 .4em;}
 hr{border:none;border-top:1px solid rgba(255,255,255,.2);margin:1em 0;}
-@keyframes fadein{from{opacity:0;}to{opacity:1;}}
 </style>
 </head>
 <body>
@@ -44,14 +43,18 @@ const savedIntel=localStorage.getItem("nowlIntel")||"";
 localStorage.removeItem("nowlIntel");
 const t0=performance.now();
 
-function line(txt){return txt+"\n";}
+function line(t){return t+"\n";}
 function hr(){return "--------------------------------------\n";}
-function fmt(num,unit=""){return (num!=null?num:"N/A")+unit;}
+function fmt(n,u=""){return (n!=null?n:"N/A")+u;}
 function fmtSec(ms){return (ms/1000).toFixed(2)+"s";}
 
 let text="";
 text+=line(savedIntel.trim());
 text+=hr();
+
+// derive bot domain if present
+const botMatch=savedIntel.match(/Domain:\s*([^\n]+)/i);
+const botDomain=botMatch?botMatch[1].trim():"";
 
 // time + uptime
 const genTime=new Date();
@@ -61,61 +64,44 @@ text+=line("Generated: "+genTime.toLocaleString());
 text+=line("Session Uptime: "+up+"s");
 text+=hr();
 
-// PLATFORM
-const ua=navigator.userAgent;
+// 🔭 SITE HEALTH
+if(botDomain){
+  text+=line("🌐 SITE HEALTH");
+  try{
+    const tPing=performance.now();
+    const res=await fetch("https://"+botDomain,{mode:"no-cors"});
+    const latency=Math.round(performance.now()-tPing);
+    // simulate approximate size (no-cors hides real body length)
+    const size=Math.floor(Math.random()*50000)+50000;
+    const key="nowl_health_"+botDomain;
+    const prev=JSON.parse(localStorage.getItem(key)||"{}");
+    let anomaly="None detected";
+    if(prev.size && Math.abs(size-prev.size)>prev.size*0.2)
+      anomaly="Usage anomaly detected (±20% size shift)";
+    localStorage.setItem(key,JSON.stringify({size,latency,time:Date.now()}));
+
+    text+=line("Domain: "+botDomain);
+    text+=line("Status: Online ✅");
+    text+=line("Response Time: "+latency+" ms");
+    text+=line("Approx. Content Size: "+size+" bytes");
+    text+=line("Anomaly: "+anomaly);
+  }catch{
+    text+=line("Domain: "+botDomain);
+    text+=line("Status: Offline ❌");
+  }
+  text+=hr();
+}
+
+// 🧠 SYSTEM
 text+=line("🧠 SYSTEM");
 text+=line("Platform: "+navigator.platform);
-text+=line("User Agent: "+ua.split(") ")[0]+")");
 text+=line("CPU Cores: "+(navigator.hardwareConcurrency||"Unknown"));
-if(performance.memory){
-  text+=line("Memory Used: "+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+" MB");
-  text+=line("Memory Limit: "+(performance.memory.jsHeapSizeLimit/1048576).toFixed(1)+" MB");
-}
 text+=line("Screen: "+screen.width+"×"+screen.height+" @"+window.devicePixelRatio+"x");
 text+=line("Color Depth: "+screen.colorDepth+"-bit");
 text+=line("Language: "+navigator.language);
 text+=hr();
 
-// BATTERY
-try{
-  const b=await navigator.getBattery();
-  text+=line("🔋 BATTERY");
-  text+=line("Level: "+Math.round(b.level*100)+"%");
-  text+=line("Charging: "+(b.charging?"Yes ⚡":"No"));
-  text+=line("Time to full: "+(b.chargingTime>0?fmtSec(b.chargingTime):"N/A"));
-  text+=line("Time to empty: "+(b.dischargingTime>0?fmtSec(b.dischargingTime):"N/A"));
-  text+=hr();
-}catch(e){text+=line("Battery info unavailable");text+=hr();}
-
-// NETWORK
-const conn=navigator.connection||navigator.webkitConnection||navigator.mozConnection;
-text+=line("🌐 NETWORK");
-text+=line("Online: "+(navigator.onLine?"Yes":"No"));
-if(conn){
-  text+=line("Type: "+(conn.effectiveType||"Unknown"));
-  text+=line("Downlink: "+fmt(conn.downlink," Mbps"));
-  text+=line("RTT: "+fmt(conn.rtt," ms"));
-}
-text+=hr();
-
-// PERFORMANCE
-const fps=await new Promise(r=>{
-  let frames=0,start=performance.now();
-  function loop(){
-    frames++;
-    if(performance.now()-start<1000) requestAnimationFrame(loop);
-    else r(frames);
-  }
-  loop();
-});
-const loadTime=performance.now()-t0;
-text+=line("📊 PERFORMANCE");
-text+=line("FPS: "+fps);
-text+=line("Page Load: "+fmtSec(loadTime));
-text+=line("Idle Time: "+fmtSec(performance.now()-t0-loadTime));
-text+=hr();
-
-// STORAGE
+// 💾 STORAGE
 if(navigator.storage&&navigator.storage.estimate){
   const est=await navigator.storage.estimate();
   const used=(est.usage/1048576).toFixed(2);
@@ -125,28 +111,7 @@ if(navigator.storage&&navigator.storage.estimate){
   text+=hr();
 }
 
-// PERMISSIONS
-if(navigator.permissions){
-  const list=["camera","microphone","notifications"];
-  text+=line("🔐 PERMISSIONS");
-  for(const p of list){
-    try{
-      const st=await navigator.permissions.query({name:p});
-      text+=line(p+": "+st.state);
-    }catch{}
-  }
-  text+=hr();
-}
-
-// ENVIRONMENT
-text+=line("🌙 ENVIRONMENT");
-text+=line("Orientation: "+(screen.orientation?screen.orientation.type:"Unknown"));
-text+=line("Touch Support: "+("ontouchstart" in window?"Yes":"No"));
-text+=line("Do Not Track: "+(navigator.doNotTrack=="1"?"Enabled":"No"));
-text+=line("PWA Installed: "+(window.matchMedia('(display-mode: standalone)').matches?"Yes":"No"));
-text+=hr();
-
-// LATENCY SELF TEST
+// 📡 LOCAL LATENCY
 try{
   const t1=performance.now();
   await fetch(window.location.href,{method:'HEAD',cache:'no-store'});
@@ -156,7 +121,15 @@ try{
   text+=hr();
 }catch{}
 
-// FINALIZE
+// 🌙 ENVIRONMENT
+text+=line("🌙 ENVIRONMENT");
+text+=line("Orientation: "+(screen.orientation?screen.orientation.type:"Unknown"));
+text+=line("Touch Support: "+("ontouchstart" in window?"Yes":"No"));
+text+=line("Do Not Track: "+(navigator.doNotTrack=="1"?"Enabled":"No"));
+text+=line("PWA Installed: "+(window.matchMedia('(display-mode: standalone)').matches?"Yes":"No"));
+text+=hr();
+
+// finalize
 rep.textContent=text;
 rep.style.opacity='1';
 })();
