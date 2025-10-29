@@ -214,33 +214,23 @@ async function generateIntelReport(){
   const prefix="intel_log_"+bot+"_";
   const logKey=prefix+new Date().toISOString();
 
-  // SAVE REPORT LOCALLY
+  // Save new report
   const files=Object.keys(localStorage);
-  const reportData={
-    generated:new Date().toLocaleString(),
-    bot,
-    files
-  };
+  const reportData={generated:new Date().toLocaleString(),bot,files};
   localStorage.setItem(logKey,JSON.stringify(reportData,null,2));
 
-  // FINAL DISPLAY
-  let report=
+  // Build minimal fine art report
+  intelSection.textContent=
 `-----------------------------------------------
 NOWL PRO INTEL REPORT
 Generated: ${new Date().toLocaleString()}
------------------------------------------------
-💾 LOCAL FILES
-${files.map(f=>"• "+f).join("\n")}
-→ These are this bot’s save files stored locally on your device.
 -----------------------------------------------
 → LUHV reflection complete.
 -----------------------------------------------
 📂 Tap below to view saved reports:
 `;
 
-  intelSection.textContent=report;
-
-  // ADD SAVED REPORT BUTTONS
+  // Green boxed buttons
   const logs=Object.keys(localStorage).filter(k=>k.startsWith("intel_log_")).reverse();
   logs.forEach(k=>{
     const div=document.createElement("div");
@@ -259,7 +249,7 @@ ${files.map(f=>"• "+f).join("\n")}
   };
 }
 
-// open report content
+// open report window
 function openReport(key){
   const data=localStorage.getItem(key);
   if(!data)return alert("Report not found.");
