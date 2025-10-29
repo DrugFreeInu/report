@@ -183,7 +183,7 @@ function render(txt){
   }
 }
 
-// --- INTEL MODULE: Local storage reflection ---
+// --- INTEL MODULE: Local storage reflection + history ---
 async function generateIntelReport(){
   const bot=document.getElementById("botSelect").value||"Nowl";
   document.getElementById('reportSection').style.display='none';
@@ -191,7 +191,7 @@ async function generateIntelReport(){
   requestAnimationFrame(()=>intelSection.classList.add('visible'));
   intelSection.textContent="⏳ Scanning local environment...\n";
 
-  // Local storage analysis
+  // Scan localStorage
   let total=0;
   const storedKeys=[];
   for(const key in localStorage){
@@ -201,30 +201,31 @@ async function generateIntelReport(){
     }
   }
   const storageUsedKB=(total/1024).toFixed(2);
-  const storage={
-    bot,
-    used:`${storageUsedKB} KB`,
-    files:storedKeys.length ? storedKeys.map(k=>"• "+k).join("\n") : "No local files found",
-    type:"localStorage"
-  };
 
-  intelSection.textContent=
+  // Build report
+  const report=
 `-----------------------------------------------
 NOWL PRO INTEL REPORT
 Generated: ${new Date().toLocaleString()}
 -----------------------------------------------
 💾 LOCAL STORAGE
-Bot: ${storage.bot}
-Used: ${storage.used}
-Type: ${storage.type}
+Bot: ${bot}
+Used: ${storageUsedKB} KB
 Files:
-${storage.files}
+${storedKeys.length ? storedKeys.map(k=>"• "+k).join("\n") : "No local files found"}
 → These are this bot’s save files stored locally on your device.
 -----------------------------------------------
 📜 NOTE
 This information never leaves your device.
------------------------------------------------
-[Tap to return]`;
+-----------------------------------------------`;
+
+  // Save snapshot to localStorage
+  const timestamp=new Date().toISOString().replace(/[:.]/g,"-");
+  const key=`intel_log_${bot}_${timestamp}`;
+  localStorage.setItem(key,report);
+
+  // Update display
+  intelSection.textContent=report+`\nSnapshot saved: ${key}`;
 
   intelSection.onclick=()=>{
     intelSection.classList.remove('visible');
